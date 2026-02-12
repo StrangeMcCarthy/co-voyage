@@ -1,0 +1,98 @@
+[versions]
+# Kotlin and Compose
+kotlin = "1.9.22"
+compose = "1.5.12"
+
+# Android
+agp = "8.2.2"
+android-compileSdk = "34"
+android-minSdk = "24"
+android-targetSdk = "34"
+
+# Ktor
+ktor = "2.3.7"
+
+# Coroutines
+coroutines = "1.7.3"
+
+# Serialization
+serialization = "1.6.2"
+
+# DateTime
+datetime = "0.5.0"
+
+# Koin
+koin = "3.5.3"
+koinCompose = "1.1.2"
+
+# Others
+androidx-core = "1.12.0"
+androidx-activity = "1.8.2"
+androidx-lifecycle = "2.7.0"
+androidx-navigation = "2.7.6"
+androidx-splash = "1.0.1"
+google-maps = "4.3.0"
+google-maps-services = "18.2.0"
+google-location = "21.1.0"
+accompanist = "0.33.2-alpha"
+coil = "2.5.0"
+
+[libraries]
+# Kotlin Serialization
+kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
+# Coroutines
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+
+# Ktor Client
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
+ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+
+# DateTime
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+
+# Koin
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koinCompose" }
+
+# AndroidX
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
+androidx-splash-screen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-splash" }
+androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.1" }
+
+# UI Components
+google-maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "google-maps" }
+google-play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "google-maps-services" }
+google-play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "google-location" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+
+# Backend Specific
+mongodb-driver = { module = "org.mongodb:mongodb-driver-kotlin-coroutine", version = "4.11.1" }
+mongodb-bson = { module = "org.mongodb:bson-kotlinx", version = "4.11.1" }
+jbcrypt = { module = "org.mindrot:jbcrypt", version = "0.4" }
+logback = { module = "ch.qos.logback:logback-classic", version = "1.4.14" }
+dotenv = { module = "io.github.cdimascio:dotenv-kotlin", version = "6.4.1" }
+koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
+koin-logger-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin" }
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
