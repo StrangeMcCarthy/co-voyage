@@ -1,0 +1,15 @@
+*.iml
+.gradle
+/build/
+/.idea
+/.DS_Store
+/local.properties
+.apple
+.DS_Store
+/androidApp/build
+/shared/build
+/backend/build
+*.hprof
+*.pyc
+/node_modules/
+.env
