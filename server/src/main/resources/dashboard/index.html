@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoVoyage — Admin Dashboard</title>
+    <meta name="description" content="CoVoyage admin dashboard for managing payments, journeys, and bookings">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">🚐</div>
+            <div>
+                <h1 class="brand-name">CoVoyage</h1>
+                <span class="brand-tag">Admin Dashboard</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview" id="nav-overview">
+                <span class="nav-icon">📊</span>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-section="payments" id="nav-payments">
+                <span class="nav-icon">💰</span>
+                <span>Payments</span>
+            </a>
+            <a href="#" class="nav-item" data-section="journeys" id="nav-journeys">
+                <span class="nav-icon">🛣️</span>
+                <span>Journeys</span>
+            </a>
+            <a href="#" class="nav-item" data-section="bookings" id="nav-bookings">
+                <span class="nav-icon">🎫</span>
+                <span>Bookings</span>
+            </a>
+            <a href="#" class="nav-item" data-section="revenue" id="nav-revenue">
+                <span class="nav-icon">📈</span>
+                <span>Revenue</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-dot online"></span>
+                <span>Server connected</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <!-- Top bar -->
+        <header class="topbar">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <h2 class="page-title" id="pageTitle">Overview</h2>
+            <div class="topbar-actions">
+                <button class="refresh-btn" id="refreshBtn" title="Refresh data">
+                    <span class="refresh-icon">⟳</span>
+                </button>
+                <div class="auto-refresh">
+                    <label class="switch">
+                        <input type="checkbox" id="autoRefresh" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Auto-refresh</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="content-section active" id="section-overview">
+            <div class="stats-grid">
+                <div class="stat-card green">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Revenue</span>
+                        <span class="stat-value" id="totalRevenue">—</span>
+                        <span class="stat-sub">XAF collected</span>
+                    </div>
+                </div>
+                <div class="stat-card gold">
+                    <div class="stat-icon">🏦</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Platform Fees</span>
+                        <span class="stat-value" id="platformFees">—</span>
+                        <span class="stat-sub">10% commission</span>
+                    </div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-icon">📱</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Payments</span>
+                        <span class="stat-value" id="totalPayments">—</span>
+                        <span class="stat-sub" id="paymentBreakdown">—</span>
+                    </div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-icon">🚐</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Active Journeys</span>
+                        <span class="stat-value" id="totalJourneys">—</span>
+                        <span class="stat-sub" id="bookingsCount">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment status breakdown -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Payment Status Overview</h3>
+                </div>
+                <div class="status-bars" id="statusBars">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <!-- Recent Payments Preview -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Recent Transactions</h3>
+                    <button class="see-all-btn" data-go="payments">See all →</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Passenger</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentPaymentsBody">
+                            <tr><td colspan="5" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Payments Section -->
+        <section class="content-section" id="section-payments">
+            <div class="card">
+                <div class="card-header">
+                    <h3>All Payments</h3>
+                    <span class="badge" id="paymentsCount">0</span>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Passenger</th>
+                                <th>Phone</th>
+                                <th>Amount</th>
+                                <th>Platform Fee</th>
+                                <th>Driver Payout</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Ref</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allPaymentsBody">
+                            <tr><td colspan="9" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Journeys Section -->
+        <section class="content-section" id="section-journeys">
+            <div class="card">
+                <div class="card-header">
+                    <h3>All Journeys</h3>
+                    <span class="badge" id="journeysCount">0</span>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Route</th>
+                                <th>Driver</th>
+                                <th>Date</th>
+                                <th>Seats</th>
+                                <th>Price/Seat</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="journeysBody">
+                            <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bookings Section -->
+        <section class="content-section" id="section-bookings">
+            <div class="card">
+                <div class="card-header">
+                    <h3>All Bookings</h3>
+                    <span class="badge" id="bookingsCountBadge">0</span>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Passenger</th>
+                                <th>Journey</th>
+                                <th>Seats</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsBody">
+                            <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Revenue Section -->
+        <section class="content-section" id="section-revenue">
+            <div class="stats-grid cols-3">
+                <div class="stat-card green">
+                    <div class="stat-icon">📱</div>
+                    <div class="stat-info">
+                        <span class="stat-label">MTN MoMo</span>
+                        <span class="stat-value" id="revMtn">—</span>
+                        <span class="stat-sub" id="revMtnCount">0 transactions</span>
+                    </div>
+                </div>
+                <div class="stat-card gold">
+                    <div class="stat-icon">🍊</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Orange Money</span>
+                        <span class="stat-value" id="revOrange">—</span>
+                        <span class="stat-sub" id="revOrangeCount">0 transactions</span>
+                    </div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-icon">💳</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Card Payments</span>
+                        <span class="stat-value" id="revCard">—</span>
+                        <span class="stat-sub" id="revCardCount">0 transactions</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Revenue Breakdown</h3>
+                </div>
+                <div class="revenue-bars" id="revenueBars">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Platform Fee Summary</h3>
+                </div>
+                <div class="fee-summary" id="feeSummary">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
