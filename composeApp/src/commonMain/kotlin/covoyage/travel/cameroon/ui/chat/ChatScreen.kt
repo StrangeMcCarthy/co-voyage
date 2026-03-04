@@ -134,7 +134,7 @@ class ChatScreen(
                     ) {
                         OutlinedTextField(
                             value = uiState.inputText,
-                            onValueChange = chatScreenModel::updateInputText,
+                            onValueChange = chatScreenModel::updateInput,
                             placeholder = { Text(strings.typeMessage) },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(24.dp),

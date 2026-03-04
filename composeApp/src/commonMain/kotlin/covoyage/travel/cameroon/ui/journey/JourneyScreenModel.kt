@@ -16,6 +16,7 @@ data class JourneyUiState(
     val error: String = "",
     val journeys: List<Journey> = emptyList(),
     val selectedJourney: Journey? = null,
+    val searchQuery: String = "",
     val searchDepartureCity: String = "",
     val searchArrivalCity: String = "",
     val searchDate: String = "",
@@ -34,7 +35,15 @@ data class JourneyUiState(
     // Save-for-reuse
     val savedVehicles: List<SavedVehicle> = emptyList(),
     val saveVehicle: Boolean = false,
-)
+) {
+    val filteredJourneys: List<Journey>
+        get() = if (searchQuery.isBlank()) journeys
+        else journeys.filter { j ->
+            j.departureCity.contains(searchQuery, ignoreCase = true) ||
+                j.arrivalCity.contains(searchQuery, ignoreCase = true) ||
+                j.driverName.contains(searchQuery, ignoreCase = true)
+        }
+}
 
 class JourneyScreenModel(
     private val journeyRepository: JourneyRepository
@@ -71,7 +80,12 @@ class JourneyScreenModel(
         _uiState.value = _uiState.value.copy(selectedJourney = journey)
     }
 
-    // Search
+    // Search (quick filter for JourneyFeedScreen)
+    fun updateSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+    }
+
+    // Advanced search
     fun updateSearchDeparture(city: String) {
         _uiState.value = _uiState.value.copy(searchDepartureCity = city)
     }

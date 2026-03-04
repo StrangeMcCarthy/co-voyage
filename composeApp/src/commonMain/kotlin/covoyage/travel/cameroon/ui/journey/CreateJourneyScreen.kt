@@ -170,7 +170,7 @@ class CreateJourneyScreen(
                             label = { Text(strings.selectSavedVehicle) },
                             leadingIcon = { Icon(Icons.Default.DirectionsCar, null) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleDropdownExpanded) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                         )
                         ExposedDropdownMenu(

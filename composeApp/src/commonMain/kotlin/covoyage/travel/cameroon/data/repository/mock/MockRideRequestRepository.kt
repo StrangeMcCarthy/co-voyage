@@ -1,5 +1,6 @@
 package covoyage.travel.cameroon.data.repository.mock
 
+import covoyage.travel.cameroon.data.local.LocalStorageService
 import covoyage.travel.cameroon.data.model.RideRequest
 import covoyage.travel.cameroon.data.model.RideRequestStatus
 import covoyage.travel.cameroon.data.repository.RideRequestRepository
@@ -7,68 +8,25 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
-class MockRideRequestRepository : RideRequestRepository {
+class MockRideRequestRepository(
+    private val storage: LocalStorageService,
+) : RideRequestRepository {
 
     private val requests = mutableListOf<RideRequest>()
 
     init {
-        // Seed with sample ride requests
-        requests.addAll(
-            listOf(
-                RideRequest(
-                    id = "request-001",
-                    passengerId = "passenger-001",
-                    passengerName = "Marie Fotso",
-                    passengerPhone = "+237 691 234 567",
-                    departureCity = "Douala",
-                    destinationCity = "Yaoundé",
-                    travelDate = "2026-02-25",
-                    seatsNeeded = 2,
-                    message = "Travelling with luggage, prefer AC vehicle.",
-                    status = RideRequestStatus.OPEN,
-                    createdAt = "2026-02-19T08:00:00Z",
-                ),
-                RideRequest(
-                    id = "request-002",
-                    passengerId = "passenger-002",
-                    passengerName = "Emmanuel Tabi",
-                    passengerPhone = "+237 677 444 222",
-                    departureCity = "Bamenda",
-                    destinationCity = "Douala",
-                    travelDate = "2026-02-26",
-                    seatsNeeded = 1,
-                    message = "Early morning departure preferred.",
-                    status = RideRequestStatus.OPEN,
-                    createdAt = "2026-02-19T09:00:00Z",
-                ),
-                RideRequest(
-                    id = "request-003",
-                    passengerId = "passenger-003",
-                    passengerName = "Claudine Mbarga",
-                    passengerPhone = "+237 699 888 333",
-                    departureCity = "Yaoundé",
-                    destinationCity = "Kribi",
-                    travelDate = "2026-02-28",
-                    seatsNeeded = 3,
-                    message = "Weekend getaway with friends 🏖️",
-                    status = RideRequestStatus.OPEN,
-                    createdAt = "2026-02-19T10:00:00Z",
-                ),
-                RideRequest(
-                    id = "request-004",
-                    passengerId = "passenger-001",
-                    passengerName = "Marie Fotso",
-                    passengerPhone = "+237 691 234 567",
-                    departureCity = "Douala",
-                    destinationCity = "Buea",
-                    travelDate = "2026-03-01",
-                    seatsNeeded = 1,
-                    message = "",
-                    status = RideRequestStatus.OPEN,
-                    createdAt = "2026-02-19T11:00:00Z",
-                ),
-            )
-        )
+        val stored = storage.loadList<RideRequest>(KEY_REQUESTS)
+        if (stored.isNotEmpty()) {
+            requests.addAll(stored)
+        } else {
+            // Seed with sample ride requests
+            requests.addAll(seedRequests())
+            persist()
+        }
+    }
+
+    private fun persist() {
+        storage.saveList(KEY_REQUESTS, requests)
     }
 
     override suspend fun createRequest(request: RideRequest): Result<RideRequest> {
@@ -77,6 +35,7 @@ class MockRideRequestRepository : RideRequestRepository {
             createdAt = "2026-02-19T12:00:00Z", // simplified
         )
         requests.add(0, newRequest)
+        persist()
         return Result.success(newRequest)
     }
 
@@ -96,10 +55,70 @@ class MockRideRequestRepository : RideRequestRepository {
                 Result.failure(Exception("Unauthorized — not your request"))
             } else {
                 requests[index] = req.copy(status = RideRequestStatus.CLOSED)
+                persist()
                 Result.success(Unit)
             }
         } else {
             Result.failure(Exception("Request not found"))
         }
+    }
+
+    companion object {
+        private const val KEY_REQUESTS = "covoyage_ride_requests"
+
+        private fun seedRequests() = listOf(
+            RideRequest(
+                id = "request-001",
+                passengerId = "passenger-001",
+                passengerName = "Marie Fotso",
+                passengerPhone = "+237 691 234 567",
+                departureCity = "Douala",
+                destinationCity = "Yaoundé",
+                travelDate = "2026-02-25",
+                seatsNeeded = 2,
+                message = "Travelling with luggage, prefer AC vehicle.",
+                status = RideRequestStatus.OPEN,
+                createdAt = "2026-02-19T08:00:00Z",
+            ),
+            RideRequest(
+                id = "request-002",
+                passengerId = "passenger-002",
+                passengerName = "Emmanuel Tabi",
+                passengerPhone = "+237 677 444 222",
+                departureCity = "Bamenda",
+                destinationCity = "Douala",
+                travelDate = "2026-02-26",
+                seatsNeeded = 1,
+                message = "Early morning departure preferred.",
+                status = RideRequestStatus.OPEN,
+                createdAt = "2026-02-19T09:00:00Z",
+            ),
+            RideRequest(
+                id = "request-003",
+                passengerId = "passenger-003",
+                passengerName = "Claudine Mbarga",
+                passengerPhone = "+237 699 888 333",
+                departureCity = "Yaoundé",
+                destinationCity = "Kribi",
+                travelDate = "2026-02-28",
+                seatsNeeded = 3,
+                message = "Weekend getaway with friends 🏖️",
+                status = RideRequestStatus.OPEN,
+                createdAt = "2026-02-19T10:00:00Z",
+            ),
+            RideRequest(
+                id = "request-004",
+                passengerId = "passenger-001",
+                passengerName = "Marie Fotso",
+                passengerPhone = "+237 691 234 567",
+                departureCity = "Douala",
+                destinationCity = "Buea",
+                travelDate = "2026-03-01",
+                seatsNeeded = 1,
+                message = "",
+                status = RideRequestStatus.OPEN,
+                createdAt = "2026-02-19T11:00:00Z",
+            ),
+        )
     }
 }

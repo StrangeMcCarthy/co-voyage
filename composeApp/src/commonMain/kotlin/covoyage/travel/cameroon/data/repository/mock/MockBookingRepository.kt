@@ -1,5 +1,6 @@
 package covoyage.travel.cameroon.data.repository.mock
 
+import covoyage.travel.cameroon.data.local.LocalStorageService
 import covoyage.travel.cameroon.data.model.Booking
 import covoyage.travel.cameroon.data.model.BookingStatus
 import covoyage.travel.cameroon.data.model.Payment
@@ -10,10 +11,25 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
-class MockBookingRepository : BookingRepository {
+class MockBookingRepository(
+    private val storage: LocalStorageService,
+) : BookingRepository {
 
     private val bookings = mutableListOf<Booking>()
     private val payments = mutableListOf<Payment>()
+
+    init {
+        bookings.addAll(storage.loadList<Booking>(KEY_BOOKINGS))
+        payments.addAll(storage.loadList<Payment>(KEY_PAYMENTS))
+    }
+
+    private fun persistBookings() {
+        storage.saveList(KEY_BOOKINGS, bookings)
+    }
+
+    private fun persistPayments() {
+        storage.saveList(KEY_PAYMENTS, payments)
+    }
 
     override suspend fun createBooking(booking: Booking): Result<Booking> {
         val newBooking = booking.copy(
@@ -22,6 +38,7 @@ class MockBookingRepository : BookingRepository {
             createdAt = "2026-02-18T12:00:00Z",
         )
         bookings.add(newBooking)
+        persistBookings()
         return Result.success(newBooking)
     }
 
@@ -38,6 +55,7 @@ class MockBookingRepository : BookingRepository {
         return if (index >= 0) {
             val updated = bookings[index].copy(status = BookingStatus.CANCELLED)
             bookings[index] = updated
+            persistBookings()
             Result.success(updated)
         } else {
             Result.failure(Exception("Booking not found"))
@@ -61,11 +79,13 @@ class MockBookingRepository : BookingRepository {
             createdAt = "2026-02-18T12:00:00Z",
         )
         payments.add(payment)
+        persistPayments()
 
         // Update booking to confirmed
         val bookingIndex = bookings.indexOfFirst { it.id == booking.id }
         if (bookingIndex >= 0) {
             bookings[bookingIndex] = bookings[bookingIndex].copy(status = BookingStatus.CONFIRMED)
+            persistBookings()
         }
 
         return Result.success(payment)
@@ -88,6 +108,7 @@ class MockBookingRepository : BookingRepository {
                 releasedAt = "2026-02-18T18:00:00Z",
             )
             payments[index] = updated
+            persistPayments()
             Result.success(updated)
         } else {
             Result.failure(Exception("Payment not found"))
@@ -99,9 +120,15 @@ class MockBookingRepository : BookingRepository {
         return if (index >= 0) {
             val updated = payments[index].copy(status = PaymentStatus.REFUNDED)
             payments[index] = updated
+            persistPayments()
             Result.success(updated)
         } else {
             Result.failure(Exception("Payment not found"))
         }
+    }
+
+    companion object {
+        private const val KEY_BOOKINGS = "covoyage_bookings"
+        private const val KEY_PAYMENTS = "covoyage_payments"
     }
 }

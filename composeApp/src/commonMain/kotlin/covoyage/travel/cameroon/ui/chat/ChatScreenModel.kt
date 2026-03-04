@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -69,7 +70,7 @@ class ChatScreenModel(
             try {
                 // Optimistic local add
                 val optimisticMsg = ChatMessage(
-                    id = "local-${System.currentTimeMillis()}",
+                    id = "local-${kotlinx.datetime.Clock.System.now().toEpochMilliseconds()}",
                     bookingId = bookingId,
                     senderId = currentUserId,
                     senderName = currentUserName,
