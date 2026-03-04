@@ -32,6 +32,6 @@ val appModule = module {
     single { RideRequestApiService() }
 
     // Screen models
-    single { DriverScreenModel(get()) }
+    single { DriverScreenModel(get<JourneyRepository>()) }
     single { RideRequestScreenModel(get()) }
 }

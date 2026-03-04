@@ -5,6 +5,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import covoyage.travel.cameroon.data.model.UserProfile
 import covoyage.travel.cameroon.data.model.UserType
 import covoyage.travel.cameroon.data.repository.AuthRepository
+import covoyage.travel.cameroon.util.InputValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -140,6 +141,14 @@ class AuthScreenModel(
         }
         if (state.regPassword.length < 6) {
             _uiState.value = state.copy(error = "Password must be at least 6 characters")
+            return
+        }
+        if (!InputValidator.isValidEmail(state.regEmail)) {
+            _uiState.value = state.copy(error = "Invalid email format")
+            return
+        }
+        if (!InputValidator.isValidCameroonPhone(state.regPhone)) {
+            _uiState.value = state.copy(error = "Invalid Cameroon phone number")
             return
         }
         if (state.regUserType == UserType.DRIVER) {

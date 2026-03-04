@@ -5,6 +5,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import covoyage.travel.cameroon.data.model.RideRequest
 import covoyage.travel.cameroon.data.model.RideRequestStatus
 import covoyage.travel.cameroon.data.repository.RideRequestRepository
+import covoyage.travel.cameroon.util.InputValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -82,7 +83,7 @@ class RideRequestScreenModel(
     }
 
     fun updateSeatsNeeded(seats: String) {
-        _uiState.value = _uiState.value.copy(seatsNeeded = seats, error = "")
+        _uiState.value = _uiState.value.copy(seatsNeeded = InputValidator.digitsOnly(seats), error = "")
     }
 
     fun updateMessage(msg: String) {
@@ -98,9 +99,14 @@ class RideRequestScreenModel(
             return
         }
 
+        if (!InputValidator.isValidDate(state.travelDate)) {
+            _uiState.value = state.copy(error = "Date must be YYYY-MM-DD")
+            return
+        }
+
         val seats = state.seatsNeeded.toIntOrNull() ?: 1
         if (seats < 1) {
-            _uiState.value = state.copy(error = "Seats must be at least 1")
+            _uiState.value = state.copy(error = "Must request at least 1 seat")
             return
         }
 

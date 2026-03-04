@@ -5,7 +5,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import covoyage.travel.cameroon.data.model.Journey
 import covoyage.travel.cameroon.data.model.JourneyStatus
 import covoyage.travel.cameroon.data.remote.DriverPayoutResponse
-import covoyage.travel.cameroon.data.remote.JourneyApiService
+import covoyage.travel.cameroon.data.repository.JourneyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +21,7 @@ data class DriverUiState(
 )
 
 class DriverScreenModel(
-    private val journeyApiService: JourneyApiService = JourneyApiService(),
+    private val journeyRepository: JourneyRepository,
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(DriverUiState())
@@ -30,7 +30,7 @@ class DriverScreenModel(
     fun loadMyJourneys(driverId: String) {
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
-            journeyApiService.getDriverJourneys(driverId).fold(
+            journeyRepository.getJourneysByDriver(driverId).fold(
                 onSuccess = { journeys ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -50,11 +50,11 @@ class DriverScreenModel(
     fun cancelJourney(journeyId: String, driverId: String) {
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
-            journeyApiService.cancelJourney(journeyId, driverId).fold(
-                onSuccess = { response ->
+            journeyRepository.updateJourneyStatus(journeyId, JourneyStatus.CANCELLED).fold(
+                onSuccess = {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        successMessage = response.message,
+                        successMessage = "Journey cancelled successfully",
                     )
                     loadMyJourneys(driverId)
                 },
@@ -71,11 +71,11 @@ class DriverScreenModel(
     fun startTrip(journeyId: String, driverId: String) {
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
-            journeyApiService.startTrip(journeyId, driverId).fold(
-                onSuccess = { response ->
+            journeyRepository.startTrip(journeyId).fold(
+                onSuccess = {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        successMessage = response.message,
+                        successMessage = "Trip started!",
                     )
                     loadMyJourneys(driverId)
                 },
@@ -92,11 +92,11 @@ class DriverScreenModel(
     fun completeTrip(journeyId: String, driverId: String) {
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
-            journeyApiService.completeTrip(journeyId, driverId).fold(
-                onSuccess = { response ->
+            journeyRepository.completeTrip(journeyId).fold(
+                onSuccess = {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        successMessage = response.message,
+                        successMessage = "Trip completed!",
                     )
                     loadMyJourneys(driverId)
                 },
@@ -113,7 +113,7 @@ class DriverScreenModel(
     fun loadPayouts(driverId: String) {
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
-            journeyApiService.getDriverPayouts(driverId).fold(
+            journeyRepository.getDriverPayouts(driverId).fold(
                 onSuccess = { summary ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,

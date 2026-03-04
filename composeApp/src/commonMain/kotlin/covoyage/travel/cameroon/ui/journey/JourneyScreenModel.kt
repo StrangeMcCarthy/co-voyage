@@ -6,6 +6,7 @@ import covoyage.travel.cameroon.data.model.Journey
 import covoyage.travel.cameroon.data.model.JourneyStatus
 import covoyage.travel.cameroon.data.model.SavedVehicle
 import covoyage.travel.cameroon.data.repository.JourneyRepository
+import covoyage.travel.cameroon.util.InputValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -146,10 +147,10 @@ class JourneyScreenModel(
         _uiState.value = _uiState.value.copy(departureTime = time, error = "")
     }
     fun updateTotalSeats(seats: String) {
-        _uiState.value = _uiState.value.copy(totalSeats = seats, error = "")
+        _uiState.value = _uiState.value.copy(totalSeats = InputValidator.digitsOnly(seats), error = "")
     }
     fun updatePricePerSeat(price: String) {
-        _uiState.value = _uiState.value.copy(pricePerSeat = price, error = "")
+        _uiState.value = _uiState.value.copy(pricePerSeat = InputValidator.digitsOnly(price), error = "")
     }
     fun updateVehicleName(name: String) {
         _uiState.value = _uiState.value.copy(vehicleName = name, error = "")
@@ -188,7 +189,21 @@ class JourneyScreenModel(
             return
         }
 
+        if (!InputValidator.isValidDate(state.departureDate)) {
+            _uiState.value = state.copy(error = "Date must be YYYY-MM-DD")
+            return
+        }
+        if (!InputValidator.isValidTime(state.departureTime)) {
+            _uiState.value = state.copy(error = "Time must be HH:MM")
+            return
+        }
+
         val seats = state.totalSeats.toIntOrNull() ?: 4
+        if (seats < 1) {
+            _uiState.value = state.copy(error = "Must offer at least 1 seat")
+            return
+        }
+
         val price = state.pricePerSeat.toIntOrNull() ?: 0
         if (price <= 0) {
             _uiState.value = state.copy(error = "Price must be greater than 0")

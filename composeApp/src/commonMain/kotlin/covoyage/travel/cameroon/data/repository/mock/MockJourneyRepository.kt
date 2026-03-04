@@ -3,6 +3,8 @@ package covoyage.travel.cameroon.data.repository.mock
 import covoyage.travel.cameroon.data.local.LocalStorageService
 import covoyage.travel.cameroon.data.model.Journey
 import covoyage.travel.cameroon.data.model.JourneyStatus
+import covoyage.travel.cameroon.data.remote.DriverPayoutResponse
+import covoyage.travel.cameroon.data.remote.PayoutItem
 import covoyage.travel.cameroon.data.repository.JourneyRepository
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -90,6 +92,49 @@ class MockJourneyRepository(
         if (removed) persist()
         return if (removed) Result.success(Unit)
         else Result.failure(Exception("Journey not found"))
+    }
+
+    override suspend fun startTrip(journeyId: String): Result<Journey> {
+        return updateJourneyStatus(journeyId, JourneyStatus.IN_PROGRESS)
+    }
+
+    override suspend fun completeTrip(journeyId: String): Result<Journey> {
+        return updateJourneyStatus(journeyId, JourneyStatus.COMPLETED)
+    }
+
+    override suspend fun getDriverPayouts(driverId: String): Result<DriverPayoutResponse> {
+        // Compute payout summary from completed journeys
+        val driverJourneys = journeys.filter { it.driverId == driverId }
+        val completedJourneys = driverJourneys.filter { it.status == JourneyStatus.COMPLETED }
+        val bookedSeats = completedJourneys.sumOf { it.totalSeats - it.availableSeats }
+        val totalEarned = completedJourneys.sumOf { (it.totalSeats - it.availableSeats) * it.pricePerSeat }
+        val platformFee = (totalEarned * 0.10).toInt()
+        val driverPayout = totalEarned - platformFee
+
+        val payoutItems = completedJourneys.map { journey ->
+            val passengers = journey.totalSeats - journey.availableSeats
+            val amount = passengers * journey.pricePerSeat
+            val fee = (amount * 0.10).toInt()
+            PayoutItem(
+                paymentId = "mock-${journey.id}",
+                journeyId = journey.id,
+                passengerName = "$passengers passenger(s)",
+                totalAmount = amount,
+                driverPayout = amount - fee,
+                platformFee = fee,
+                paymentMethod = "MTN_MOMO",
+                releasedAt = journey.createdAt,
+            )
+        }
+
+        return Result.success(
+            DriverPayoutResponse(
+                totalEarned = driverPayout,
+                pendingEarnings = 0,
+                totalTrips = completedJourneys.size,
+                payouts = payoutItems,
+            )
+        )
     }
 
     companion object {

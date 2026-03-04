@@ -1,6 +1,7 @@
 package covoyage.travel.cameroon.data.repository
 
 import covoyage.travel.cameroon.data.model.Journey
+import covoyage.travel.cameroon.data.remote.DriverPayoutResponse
 
 /**
  * Repository for journey (trip post) management.
@@ -20,4 +21,9 @@ interface JourneyRepository {
         status: covoyage.travel.cameroon.data.model.JourneyStatus
     ): Result<Journey>
     suspend fun deleteJourney(journeyId: String): Result<Unit>
+
+    // Driver-specific operations
+    suspend fun startTrip(journeyId: String): Result<Journey>
+    suspend fun completeTrip(journeyId: String): Result<Journey>
+    suspend fun getDriverPayouts(driverId: String): Result<DriverPayoutResponse>
 }
