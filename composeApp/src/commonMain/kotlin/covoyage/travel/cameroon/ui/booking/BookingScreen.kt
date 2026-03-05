@@ -159,14 +159,14 @@ class BookingScreen(
 
                             PaymentMethodOption(
                                 label = strings.mtnMobileMoney,
-                                emoji = "📱",
+                                emoji = "",
                                 selected = uiState.selectedPaymentMethod == PaymentMethod.MTN_MOMO,
                                 onClick = { bookingScreenModel.updatePaymentMethod(PaymentMethod.MTN_MOMO) },
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             PaymentMethodOption(
                                 label = strings.orangeMoney,
-                                emoji = "🍊",
+                                emoji = "",
                                 selected = uiState.selectedPaymentMethod == PaymentMethod.ORANGE_MONEY,
                                 onClick = { bookingScreenModel.updatePaymentMethod(PaymentMethod.ORANGE_MONEY) },
                             )
@@ -423,8 +423,10 @@ private fun PaymentMethodOption(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(emoji, style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.width(12.dp))
+            if (emoji.isNotEmpty()) {
+                Text(emoji, style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.width(12.dp))
+            }
             Text(
                 label,
                 style = MaterialTheme.typography.bodyLarge,

@@ -24,6 +24,7 @@ import covoyage.travel.cameroon.data.model.UserProfile
 import covoyage.travel.cameroon.i18n.LocalStrings
 import covoyage.travel.cameroon.ui.components.CoVoyageButton
 import covoyage.travel.cameroon.ui.components.CoVoyageTextField
+import covoyage.travel.cameroon.ui.components.DatePickerField
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 
@@ -115,11 +116,11 @@ class CreateJourneyScreen(
                 // Section: Schedule
                 SectionLabel(strings.schedule)
 
-                CoVoyageTextField(
+                DatePickerField(
                     value = uiState.departureDate,
                     onValueChange = journeyScreenModel::updateDepartureDate,
                     label = strings.dateFormat,
-                    leadingIcon = Icons.Default.CalendarMonth,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 

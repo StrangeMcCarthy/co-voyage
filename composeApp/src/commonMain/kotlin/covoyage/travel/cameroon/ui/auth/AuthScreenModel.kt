@@ -74,7 +74,8 @@ class AuthScreenModel(
     }
 
     fun updateRegPhone(phone: String) {
-        _uiState.value = _uiState.value.copy(regPhone = phone, error = "")
+        val filtered = phone.filter { it.isDigit() || it == '+' }
+        _uiState.value = _uiState.value.copy(regPhone = filtered, error = "")
     }
 
     fun updateRegPassword(password: String) {

@@ -134,6 +134,7 @@ class RegistrationScreen(
                     onValueChange = authScreenModel::updateRegPhone,
                     label = strings.phoneNumber,
                     leadingIcon = Icons.Default.Phone,
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 

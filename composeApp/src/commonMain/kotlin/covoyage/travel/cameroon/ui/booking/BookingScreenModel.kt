@@ -5,6 +5,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import covoyage.travel.cameroon.data.model.*
 import covoyage.travel.cameroon.data.remote.PaymentApiService
 import covoyage.travel.cameroon.data.repository.BookingRepository
+import covoyage.travel.cameroon.util.InputValidator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +48,8 @@ class BookingScreenModel(
     }
 
     fun updatePhoneNumber(phone: String) {
-        _uiState.value = _uiState.value.copy(phoneNumber = phone, error = "")
+        val filtered = phone.filter { it.isDigit() || it == '+' }
+        _uiState.value = _uiState.value.copy(phoneNumber = filtered, error = "")
     }
 
     fun updatePaymentMethod(method: PaymentMethod) {
@@ -55,16 +57,16 @@ class BookingScreenModel(
     }
 
     fun updateCardNumber(value: String) {
-        _uiState.value = _uiState.value.copy(cardNumber = value, error = "")
+        _uiState.value = _uiState.value.copy(cardNumber = InputValidator.digitsOnly(value), error = "")
     }
     fun updateCardCvv(value: String) {
-        _uiState.value = _uiState.value.copy(cardCvv = value, error = "")
+        _uiState.value = _uiState.value.copy(cardCvv = InputValidator.digitsOnly(value), error = "")
     }
     fun updateCardExpiryMonth(value: String) {
-        _uiState.value = _uiState.value.copy(cardExpiryMonth = value, error = "")
+        _uiState.value = _uiState.value.copy(cardExpiryMonth = InputValidator.digitsOnly(value), error = "")
     }
     fun updateCardExpiryYear(value: String) {
-        _uiState.value = _uiState.value.copy(cardExpiryYear = value, error = "")
+        _uiState.value = _uiState.value.copy(cardExpiryYear = InputValidator.digitsOnly(value), error = "")
     }
 
     fun bookSeats(journey: Journey, passenger: UserProfile) {

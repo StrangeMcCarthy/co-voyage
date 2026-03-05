@@ -118,7 +118,7 @@ class RideRequestFeedScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("🙋", style = MaterialTheme.typography.displayLarge)
+                            Spacer(modifier = Modifier.height(16.dp))
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 strings.noRequestsYet,

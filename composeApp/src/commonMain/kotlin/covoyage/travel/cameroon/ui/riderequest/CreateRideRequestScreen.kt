@@ -19,6 +19,8 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import covoyage.travel.cameroon.data.model.UserProfile
 import covoyage.travel.cameroon.i18n.LocalStrings
+import covoyage.travel.cameroon.ui.components.DatePickerField
+import covoyage.travel.cameroon.util.InputValidator
 
 class CreateRideRequestScreen(
     private val rideRequestScreenModel: RideRequestScreenModel,
@@ -104,14 +106,11 @@ class CreateRideRequestScreen(
                     fontWeight = FontWeight.SemiBold,
                 )
 
-                OutlinedTextField(
+                DatePickerField(
                     value = uiState.travelDate,
                     onValueChange = rideRequestScreenModel::updateTravelDate,
-                    label = { Text(strings.travelDate) },
-                    placeholder = { Text(strings.dateFormat) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true,
+                    label = strings.travelDate,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -125,7 +124,7 @@ class CreateRideRequestScreen(
 
                 OutlinedTextField(
                     value = uiState.seatsNeeded,
-                    onValueChange = rideRequestScreenModel::updateSeatsNeeded,
+                    onValueChange = { rideRequestScreenModel.updateSeatsNeeded(InputValidator.digitsOnly(it)) },
                     label = { Text(strings.seatsNeeded) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
