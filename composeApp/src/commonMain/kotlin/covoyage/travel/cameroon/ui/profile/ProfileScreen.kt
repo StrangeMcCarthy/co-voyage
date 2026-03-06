@@ -24,6 +24,9 @@ import covoyage.travel.cameroon.i18n.Language
 import covoyage.travel.cameroon.i18n.LocalLanguage
 import covoyage.travel.cameroon.i18n.LocalStrings
 import covoyage.travel.cameroon.ui.components.CoVoyageOutlinedButton
+import covoyage.travel.cameroon.ui.components.CoVoyageTextField
+import cafe.adriel.voyager.koin.koinScreenModel
+import androidx.compose.ui.text.input.KeyboardType
 
 class ProfileScreen(
     private val currentUser: UserProfile,
@@ -36,6 +39,17 @@ class ProfileScreen(
     override fun Content() {
         val strings = LocalStrings.current
         val currentLanguage = LocalLanguage.current
+        val profileScreenModel = koinScreenModel<ProfileScreenModel>()
+        val uiState by profileScreenModel.uiState.collectAsState()
+        
+        var savedCheckoutNumber by remember { mutableStateOf(currentUser.payoutPhoneNumber) }
+        var checkoutNumber by remember { mutableStateOf(savedCheckoutNumber) }
+
+        LaunchedEffect(uiState.isSuccess) {
+            if (uiState.isSuccess) {
+                savedCheckoutNumber = checkoutNumber
+            }
+        }
 
         Scaffold(
             topBar = {
@@ -123,6 +137,52 @@ class ProfileScreen(
                             InfoRow(Icons.Default.Badge, strings.drivingPermit, currentUser.drivingPermitNumber)
                             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                             InfoRow(Icons.Default.CreditCard, strings.greyCard, currentUser.greyCardNumber)
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                CoVoyageTextField(
+                                    value = checkoutNumber,
+                                    onValueChange = { 
+                                        checkoutNumber = it
+                                        profileScreenModel.clearError() 
+                                    },
+                                    label = "CheckOut Number",
+                                    leadingIcon = Icons.Default.PhoneAndroid,
+                                    keyboardType = KeyboardType.Phone,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                if (checkoutNumber != savedCheckoutNumber) {
+                                    IconButton(
+                                        onClick = { profileScreenModel.updatePayoutPhoneNumber(checkoutNumber) },
+                                        enabled = !uiState.isLoading
+                                    ) {
+                                        if (uiState.isLoading) {
+                                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                        } else {
+                                            Icon(Icons.Default.Save, contentDescription = "Save")
+                                        }
+                                    }
+                                }
+                            }
+                            if (uiState.error.isNotBlank()) {
+                                Text(
+                                    text = uiState.error,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(top = 4.dp, start = 44.dp)
+                                )
+                            }
+                            if (uiState.isSuccess) {
+                                Text(
+                                    text = "Updated successfully",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(top = 4.dp, start = 44.dp)
+                                )
+                            }
                         }
                     }
                 }

@@ -276,4 +276,27 @@ class BookingScreenModel(
     fun resetBooking() {
         _uiState.value = BookingUiState()
     }
+
+    fun confirmRide(bookingId: String) {
+        screenModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            bookingRepository.updateBookingStatus(bookingId, BookingStatus.CONFIRMED).fold(
+                onSuccess = { updatedBooking ->
+                    val updatedList = _uiState.value.myBookings.map {
+                        if (it.id == bookingId) updatedBooking else it
+                    }
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        myBookings = updatedList,
+                    )
+                },
+                onFailure = { e ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Failed to confirm ride",
+                    )
+                }
+            )
+        }
+    }
 }

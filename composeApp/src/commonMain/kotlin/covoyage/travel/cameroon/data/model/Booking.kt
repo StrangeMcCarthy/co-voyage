@@ -13,15 +13,18 @@ data class Booking(
     val totalAmount: Int = 0,         // in XAF
     val currency: String = "XAF",
     val status: BookingStatus = BookingStatus.PENDING,
+    val completedAt: Long? = null,    // Timestamp when driver marks as complete to start 1hr countdown
     val createdAt: String = "",
 )
 
 @Serializable
 enum class BookingStatus {
     PENDING,
+    ACCEPTED,
+    BOARDED,
+    COMPLETED_BY_DRIVER,
     CONFIRMED,
     CANCELLED,
-    COMPLETED,
     REFUNDED
 }
 

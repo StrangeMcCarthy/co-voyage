@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import covoyage.travel.cameroon.data.repository.BookingRepository
+import covoyage.travel.cameroon.data.model.BookingStatus
+
 data class DriverUiState(
     val isLoading: Boolean = false,
     val error: String = "",
@@ -22,6 +25,7 @@ data class DriverUiState(
 
 class DriverScreenModel(
     private val journeyRepository: JourneyRepository,
+    private val bookingRepository: BookingRepository,
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(DriverUiState())
@@ -92,6 +96,17 @@ class DriverScreenModel(
     fun completeTrip(journeyId: String, driverId: String) {
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
+            
+            // First, get all bookings for this journey
+            val bookingsResult = bookingRepository.getBookingsByJourney(journeyId)
+            if (bookingsResult.isSuccess) {
+                val bookings = bookingsResult.getOrNull() ?: emptyList()
+                // Mark all accepted/pending bookings as completed by driver
+                bookings.filter { it.status == BookingStatus.ACCEPTED || it.status == BookingStatus.PENDING }.forEach { booking ->
+                    bookingRepository.updateBookingStatus(booking.id, BookingStatus.COMPLETED_BY_DRIVER)
+                }
+            }
+
             journeyRepository.completeTrip(journeyId).fold(
                 onSuccess = {
                     _uiState.value = _uiState.value.copy(
@@ -109,6 +124,8 @@ class DriverScreenModel(
             )
         }
     }
+
+
 
     fun loadPayouts(driverId: String) {
         screenModelScope.launch {

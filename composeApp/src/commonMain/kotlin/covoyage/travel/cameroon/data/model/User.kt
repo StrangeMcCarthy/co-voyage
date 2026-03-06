@@ -26,6 +26,7 @@ data class UserProfile(
     // Driver-specific fields (empty for passengers)
     val drivingPermitNumber: String = "",
     val greyCardNumber: String = "",
+    val payoutPhoneNumber: String = "",
     val profileImageUrl: String = "",
     val savedVehicles: List<SavedVehicle> = emptyList(),
 )

@@ -11,6 +11,7 @@ interface BookingRepository {
     suspend fun getBookingsByPassenger(passengerId: String): Result<List<Booking>>
     suspend fun getBookingsByJourney(journeyId: String): Result<List<Booking>>
     suspend fun cancelBooking(bookingId: String): Result<Booking>
+    suspend fun updateBookingStatus(bookingId: String, status: covoyage.travel.cameroon.data.model.BookingStatus): Result<Booking>
 
     // Payment operations
     suspend fun initiatePayment(booking: Booking): Result<Payment>

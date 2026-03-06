@@ -69,6 +69,7 @@ class MockAuthRepository(
         userType: UserType,
         drivingPermitNumber: String,
         greyCardNumber: String,
+        payoutPhoneNumber: String,
     ): Result<UserProfile> {
         if (users.any { it.profile.email == email }) {
             return Result.failure(Exception("An account with this email already exists"))
@@ -82,12 +83,27 @@ class MockAuthRepository(
             userType = userType,
             drivingPermitNumber = drivingPermitNumber,
             greyCardNumber = greyCardNumber,
+            payoutPhoneNumber = payoutPhoneNumber,
         )
         users.add(StoredUser(newUser, password))
         persistUsers()
         currentUser = newUser
         persistCurrentUser()
         return Result.success(newUser)
+    }
+
+    override suspend fun updatePayoutPhoneNumber(number: String): Result<UserProfile> {
+        val user = currentUser ?: return Result.failure(Exception("Not logged in"))
+        val updatedProfile = user.copy(payoutPhoneNumber = number)
+        val index = users.indexOfFirst { it.profile.id == user.id }
+        if (index != -1) {
+            users[index] = users[index].copy(profile = updatedProfile)
+            persistUsers()
+            currentUser = updatedProfile
+            persistCurrentUser()
+            return Result.success(updatedProfile)
+        }
+        return Result.failure(Exception("User not found"))
     }
 
     override suspend fun getCurrentUser(): UserProfile? = currentUser
@@ -113,6 +129,7 @@ class MockAuthRepository(
                     userType = UserType.DRIVER,
                     drivingPermitNumber = "DL-CM-2024-001",
                     greyCardNumber = "GC-CM-2024-001",
+                    payoutPhoneNumber = "+237 670 123 456",
                 ),
                 password = "password123",
             ),

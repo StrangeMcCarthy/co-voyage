@@ -32,8 +32,10 @@ class MockBookingRepository(
     }
 
     override suspend fun createBooking(booking: Booking): Result<Booking> {
+        val bookingId = "booking-${Uuid.random().toString().take(8)}"
+        
         val newBooking = booking.copy(
-            id = "booking-${Uuid.random().toString().take(8)}",
+            id = bookingId,
             status = BookingStatus.PENDING,
             createdAt = "2026-02-18T12:00:00Z",
         )
@@ -51,9 +53,33 @@ class MockBookingRepository(
     }
 
     override suspend fun cancelBooking(bookingId: String): Result<Booking> {
+        return updateBookingStatusInternal(bookingId) { it.copy(status = BookingStatus.CANCELLED) }
+    }
+
+    override suspend fun updateBookingStatus(
+        bookingId: String,
+        status: BookingStatus
+    ): Result<Booking> {
+        return updateBookingStatusInternal(bookingId) { current ->
+            if (status == BookingStatus.COMPLETED_BY_DRIVER) {
+                // Set the timestamp so the 1-hour auto-release countdown can begin
+                current.copy(
+                    status = status,
+                    completedAt = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+                )
+            } else {
+                current.copy(status = status)
+            }
+        }
+    }
+
+    private fun updateBookingStatusInternal(
+        bookingId: String,
+        update: (Booking) -> Booking
+    ): Result<Booking> {
         val index = bookings.indexOfFirst { it.id == bookingId }
         return if (index >= 0) {
-            val updated = bookings[index].copy(status = BookingStatus.CANCELLED)
+            val updated = update(bookings[index])
             bookings[index] = updated
             persistBookings()
             Result.success(updated)

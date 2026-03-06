@@ -47,4 +47,26 @@ object InputValidator {
 
     /** Filters a string to only allow digits */
     fun digitsOnly(value: String): String = value.filter { it.isDigit() }
+
+    // ── Document Validation ──
+
+    /**
+     * Validates a Vehicle Identification Number (VIN)
+     * Must be exactly 17 alphanumeric characters, excluding I, O, and Q.
+     */
+    fun isValidVIN(vin: String): Boolean {
+        val vinRegex = "^[A-HJ-NPR-Z0-9]{17}$".toRegex()
+        return vin.uppercase().matches(vinRegex)
+    }
+
+    /**
+     * Validates a Cameroon Driving Permit
+     * Pattern: 2 letters (Region) - 6 digits - 2 digits (Year)
+     * e.g., CE-123456-23 or CE12345623
+     */
+    fun isValidCameroonPermit(permitNumber: String): Boolean {
+        // Accept both format with hyphens and without hyphens
+        val regexPattern = "^[A-Z]{2}-?[0-9]{6}-?[0-9]{2}$".toRegex()
+        return permitNumber.uppercase().matches(regexPattern)
+    }
 }

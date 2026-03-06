@@ -16,8 +16,10 @@ interface AuthRepository {
         userType: UserType,
         drivingPermitNumber: String = "",
         greyCardNumber: String = "",
+        payoutPhoneNumber: String = "",
     ): Result<UserProfile>
     suspend fun getCurrentUser(): UserProfile?
+    suspend fun updatePayoutPhoneNumber(number: String): Result<UserProfile>
     suspend fun logout()
     fun isLoggedIn(): Boolean
 }

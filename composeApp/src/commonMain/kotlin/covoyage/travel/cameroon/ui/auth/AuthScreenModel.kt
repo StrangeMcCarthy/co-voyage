@@ -29,6 +29,7 @@ data class AuthUiState(
     // Driver-specific registration fields
     val regDrivingPermit: String = "",
     val regGreyCard: String = "",
+    val regPayoutPhone: String = "",
 )
 
 class AuthScreenModel(
@@ -98,6 +99,11 @@ class AuthScreenModel(
         _uiState.value = _uiState.value.copy(regGreyCard = greyCard, error = "")
     }
 
+    fun updateRegPayoutPhone(phone: String) {
+        val filtered = phone.filter { it.isDigit() || it == '+' }
+        _uiState.value = _uiState.value.copy(regPayoutPhone = filtered, error = "")
+    }
+
     fun login() {
         val state = _uiState.value
         if (state.loginEmail.isBlank() || state.loginPassword.isBlank()) {
@@ -152,11 +158,29 @@ class AuthScreenModel(
             _uiState.value = state.copy(error = "Invalid Cameroon phone number")
             return
         }
+        val finalPayoutPhone = state.regPayoutPhone.ifBlank { state.regPhone }
+        
         if (state.regUserType == UserType.DRIVER) {
             if (state.regDrivingPermit.isBlank() || state.regGreyCard.isBlank()) {
                 _uiState.value = state.copy(
                     error = "Driving permit and grey card numbers are required for drivers"
                 )
+                return
+            }
+            if (!InputValidator.isValidCameroonPermit(state.regDrivingPermit)) {
+                _uiState.value = state.copy(
+                    error = "Invalid driving permit format (e.g., CE-123456-23)"
+                )
+                return
+            }
+            if (!InputValidator.isValidVIN(state.regGreyCard)) {
+                _uiState.value = state.copy(
+                    error = "Invalid grey card (VIN) format (17 characters)"
+                )
+                return
+            }
+            if (!InputValidator.isValidCameroonPhone(finalPayoutPhone)) {
+                _uiState.value = state.copy(error = "Invalid Cameroon payout phone number")
                 return
             }
         }
@@ -171,6 +195,7 @@ class AuthScreenModel(
                 userType = state.regUserType,
                 drivingPermitNumber = state.regDrivingPermit,
                 greyCardNumber = state.regGreyCard,
+                payoutPhoneNumber = finalPayoutPhone,
             )
             result.fold(
                 onSuccess = { user ->

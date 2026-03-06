@@ -32,6 +32,7 @@ val appModule = module {
     single { RideRequestApiService() }
 
     // Screen models
-    single { DriverScreenModel(get<JourneyRepository>()) }
+    single { DriverScreenModel(get<JourneyRepository>(), get<BookingRepository>()) }
     single { RideRequestScreenModel(get()) }
+    single { covoyage.travel.cameroon.ui.profile.ProfileScreenModel(get()) }
 }

@@ -235,7 +235,7 @@ private fun DriverJourneyCard(
                                 confirmAction = "complete"
                                 showConfirmDialog = true
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = SuccessGreen,

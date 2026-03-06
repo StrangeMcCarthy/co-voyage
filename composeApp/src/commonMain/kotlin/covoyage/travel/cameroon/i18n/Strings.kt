@@ -58,6 +58,7 @@ data class Strings(
     val registerAsDriver: String,
     val registerAsPassenger: String,
     val alreadyHaveAccount: String,
+    val payoutPhoneNumber: String,
 
     // ── Auth: Validation ──
     val errorFillAllFields: String,
@@ -264,6 +265,7 @@ fun stringsEn() = Strings(
     registerAsDriver = "Register as Driver",
     registerAsPassenger = "Register as Passenger",
     alreadyHaveAccount = "Already have an account? ",
+    payoutPhoneNumber = "Payout Phone Number (MoMo/Orange)",
 
     // Auth: Validation
     errorFillAllFields = "Please fill in all fields",
@@ -470,6 +472,7 @@ fun stringsFr() = Strings(
     registerAsDriver = "S'inscrire en tant que chauffeur",
     registerAsPassenger = "S'inscrire en tant que passager",
     alreadyHaveAccount = "Vous avez déjà un compte ? ",
+    payoutPhoneNumber = "Numéro de Paiement (MoMo/Orange)",
 
     // Auth : Validation
     errorFillAllFields = "Veuillez remplir tous les champs",

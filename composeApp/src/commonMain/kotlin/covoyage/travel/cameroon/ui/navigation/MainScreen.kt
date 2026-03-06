@@ -58,11 +58,8 @@ class MainScreen(
         val strings = LocalStrings.current
         var selectedTab by remember { mutableStateOf(BottomTab.RIDES) }
         val isDriver = currentUser.userType == UserType.DRIVER
-        val visibleTabs = if (isDriver) {
-            listOf(BottomTab.RIDES, BottomTab.REQUESTS, BottomTab.MY_TRIPS, BottomTab.PROFILE)
-        } else {
-            listOf(BottomTab.RIDES, BottomTab.REQUESTS, BottomTab.PROFILE)
-        }
+        // Both Drivers and Passengers now have a "My Trips" tab!
+        val visibleTabs = listOf(BottomTab.RIDES, BottomTab.REQUESTS, BottomTab.MY_TRIPS, BottomTab.PROFILE)
 
         val tabLabels = mapOf(
             BottomTab.RIDES to strings.tabRides,
@@ -123,11 +120,18 @@ class MainScreen(
                     }
                     BottomTab.MY_TRIPS -> {
                         Navigator(
-                            DriverDashboardScreen(
-                                currentUser = currentUser,
-                                driverScreenModel = driverScreenModel,
-                                journeyScreenModel = journeyScreenModel,
-                            )
+                            if (isDriver) {
+                                DriverDashboardScreen(
+                                    currentUser = currentUser,
+                                    driverScreenModel = driverScreenModel,
+                                    journeyScreenModel = journeyScreenModel,
+                                )
+                            } else {
+                                covoyage.travel.cameroon.ui.booking.PassengerBookingsScreen(
+                                    currentUser = currentUser,
+                                    bookingScreenModel = bookingScreenModel,
+                                )
+                            }
                         ) { navigator ->
                             SlideTransition(navigator)
                         }

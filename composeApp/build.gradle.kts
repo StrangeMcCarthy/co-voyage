@@ -27,10 +27,10 @@ kotlin {
         }
     }
     
-    js {
-        browser()
-        binaries.executable()
-    }
+//    js {
+//        browser()
+//        binaries.executable()
+//    }
     
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -49,9 +49,9 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
 
-        jsMain.dependencies {
-            implementation(libs.ktor.client.js)
-        }
+//        jsMain.dependencies {
+//            implementation(libs.ktor.client.js)
+//        }
 
         commonMain.dependencies {
             // Compose
