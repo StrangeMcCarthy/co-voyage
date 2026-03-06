@@ -96,7 +96,7 @@ fun Application.configureServer() {
         staticResources("/dashboard", "dashboard")
 
         route("/api") {
-            authRoutes(authService)
+            authRoutes(authService, notificationService)
             paymentRoutes(paymentService)
             journeyRoutes(journeyService)
             rideRequestRoutes(rideRequestService)

@@ -30,7 +30,18 @@ data class AuthUiState(
     val regDrivingPermit: String = "",
     val regGreyCard: String = "",
     val regPayoutPhone: String = "",
+    // Forgot Password fields
+    val forgotEmail: String = "",
+    val resetOtp: String = "",
+    val resetNewPassword: String = "",
+    val resetConfirmPassword: String = "",
+    val forgotPasswordStep: ForgotPasswordStep = ForgotPasswordStep.EMAIL,
+    val resetSuccess: Boolean = false,
 )
+
+enum class ForgotPasswordStep {
+    EMAIL, OTP, NEW_PASSWORD
+}
 
 class AuthScreenModel(
     private val authRepository: AuthRepository
@@ -224,5 +235,103 @@ class AuthScreenModel(
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = "")
+    }
+
+    // Forgot Password updates
+    fun updateForgotEmail(email: String) {
+        _uiState.value = _uiState.value.copy(forgotEmail = email, error = "")
+    }
+
+    fun updateResetOtp(otp: String) {
+        _uiState.value = _uiState.value.copy(resetOtp = otp, error = "")
+    }
+
+    fun updateResetNewPassword(password: String) {
+        _uiState.value = _uiState.value.copy(resetNewPassword = password, error = "")
+    }
+
+    fun updateResetConfirmPassword(password: String) {
+        _uiState.value = _uiState.value.copy(resetConfirmPassword = password, error = "")
+    }
+
+    fun requestOtp() {
+        val email = _uiState.value.forgotEmail
+        if (email.isBlank() || !InputValidator.isValidEmail(email)) {
+            _uiState.value = _uiState.value.copy(error = "Please enter a valid email")
+            return
+        }
+
+        screenModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = "")
+            val result = authRepository.forgotPassword(email)
+            result.fold(
+                onSuccess = { otp ->
+                    // In a real app, the OTP is sent via SMS/Email. 
+                    // For the mock, we can show it or just move to the next step.
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        forgotPasswordStep = ForgotPasswordStep.OTP,
+                    )
+                },
+                onFailure = { e ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Failed to request reset code",
+                    )
+                }
+            )
+        }
+    }
+
+    fun verifyOtp() {
+        val otp = _uiState.value.resetOtp
+        if (otp.length != 6) {
+            _uiState.value = _uiState.value.copy(error = "Please enter the 6-digit code")
+            return
+        }
+        _uiState.value = _uiState.value.copy(forgotPasswordStep = ForgotPasswordStep.NEW_PASSWORD, error = "")
+    }
+
+    fun resetPassword() {
+        val state = _uiState.value
+        if (state.resetNewPassword.length < 6) {
+            _uiState.value = state.copy(error = "Password must be at least 6 characters")
+            return
+        }
+        if (state.resetNewPassword != state.resetConfirmPassword) {
+            _uiState.value = state.copy(error = "Passwords do not match")
+            return
+        }
+
+        screenModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = "")
+            val result = authRepository.resetPassword(state.forgotEmail, state.resetOtp, state.resetNewPassword)
+            result.fold(
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        resetSuccess = true,
+                    )
+                },
+                onFailure = { e ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Failed to reset password",
+                    )
+                }
+            )
+        }
+    }
+
+    fun resetForgotPasswordFlow() {
+        _uiState.value = _uiState.value.copy(
+            forgotEmail = "",
+            resetOtp = "",
+            resetNewPassword = "",
+            resetConfirmPassword = "",
+            forgotPasswordStep = ForgotPasswordStep.EMAIL,
+            resetSuccess = false,
+            error = ""
+        )
     }
 }

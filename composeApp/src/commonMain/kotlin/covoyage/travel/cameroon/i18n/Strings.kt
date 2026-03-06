@@ -217,6 +217,22 @@ data class Strings(
     val requestClosed: String,
     val anyDriverAvailable: String,
     val requestCreated: String,
+
+    // ── Forgot Password ──
+    val forgotPassword: String,
+    val resetPassword: String,
+    val enterEmailToReset: String,
+    val sendResetCode: String,
+    val enterResetCode: String,
+    val verificationCode: String,
+    val verifyCode: String,
+    val createNewPassword: String,
+    val newPassword: String,
+    val passwordResetSuccess: String,
+    val backToLogin: String,
+    val errorInvalidOtp: String,
+    val errorOtpExpired: String,
+    val errorNoAccountWithEmail: String,
 )
 
 // ════════════════════════════════════════════
@@ -424,6 +440,22 @@ fun stringsEn() = Strings(
     requestClosed = "This will remove your request from the feed.",
     anyDriverAvailable = "Any driver available?",
     requestCreated = "Request posted!",
+
+    // Forgot Password
+    forgotPassword = "Forgot Password?",
+    resetPassword = "Reset Password",
+    enterEmailToReset = "Enter your email to receive a 6-digit verification code.",
+    sendResetCode = "Send Code",
+    enterResetCode = "Enter Verification Code",
+    verificationCode = "Verification Code",
+    verifyCode = "Verify Code",
+    createNewPassword = "Create New Password",
+    newPassword = "New Password",
+    passwordResetSuccess = "Password reset successfully! You can now sign in with your new password.",
+    backToLogin = "Back to Sign In",
+    errorInvalidOtp = "Invalid verification code",
+    errorOtpExpired = "Verification code has expired",
+    errorNoAccountWithEmail = "No account found with this email",
 )
 
 // ════════════════════════════════════════════
@@ -631,6 +663,22 @@ fun stringsFr() = Strings(
     requestClosed = "Cela retirera votre demande du flux.",
     anyDriverAvailable = "Un chauffeur disponible ?",
     requestCreated = "Demande publiée !",
+
+    // Forgot Password
+    forgotPassword = "Mot de passe oublié ?",
+    resetPassword = "Réinitialiser le mot de passe",
+    enterEmailToReset = "Entrez votre e-mail pour recevoir un code de vérification à 6 chiffres.",
+    sendResetCode = "Envoyer le code",
+    enterResetCode = "Entrez le code de vérification",
+    verificationCode = "Code de vérification",
+    verifyCode = "Vérifier le code",
+    createNewPassword = "Créer un nouveau mot de passe",
+    newPassword = "Nouveau mot de passe",
+    passwordResetSuccess = "Mot de passe réinitialisé avec succès ! Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+    backToLogin = "Retour à la connexion",
+    errorInvalidOtp = "Code de vérification invalide",
+    errorOtpExpired = "Le code de vérification a expiré",
+    errorNoAccountWithEmail = "Aucun compte trouvé avec cet e-mail",
 )
 
 /**

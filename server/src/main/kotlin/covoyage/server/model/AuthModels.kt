@@ -34,6 +34,19 @@ data class AuthResponse(
     val success: Boolean,
     val message: String,
     val user: AuthUserData? = null,
+    val otp: String? = null, // Temporary for development/testing if needed
+)
+
+@Serializable
+data class ForgotPasswordRequest(
+    val email: String,
+)
+
+@Serializable
+data class ResetPasswordRequest(
+    val email: String,
+    val otp: String,
+    val newPassword: String,
 )
 
 @Serializable

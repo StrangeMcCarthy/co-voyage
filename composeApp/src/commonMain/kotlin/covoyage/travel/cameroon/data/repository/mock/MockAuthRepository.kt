@@ -114,6 +114,36 @@ class MockAuthRepository(
     }
 
     override fun isLoggedIn(): Boolean = currentUser != null
+    
+    // Forgot Password
+    private var mockOtp: String? = null
+    private var mockOtpEmail: String? = null
+
+    override suspend fun forgotPassword(email: String): Result<String> {
+        val user = users.find { it.profile.email == email }
+            ?: return Result.failure(Exception("No account found with this email"))
+            
+        val otp = (100000..999999).random().toString()
+        mockOtp = otp
+        mockOtpEmail = email
+        return Result.success(otp)
+    }
+
+    override suspend fun resetPassword(email: String, otp: String, newPassword: String): Result<Boolean> {
+        if (email != mockOtpEmail || otp != mockOtp) {
+            return Result.failure(Exception("Invalid verification code"))
+        }
+        
+        val index = users.indexOfFirst { it.profile.email == email }
+        if (index != -1) {
+            users[index] = users[index].copy(password = newPassword)
+            persistUsers()
+            mockOtp = null
+            mockOtpEmail = null
+            return Result.success(true)
+        }
+        return Result.failure(Exception("User not found"))
+    }
 
     companion object {
         private const val KEY_USERS = "covoyage_users"

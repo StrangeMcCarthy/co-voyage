@@ -86,6 +86,7 @@ private fun AppNavigation(
             LoginScreen(
                 authScreenModel = authScreenModel,
                 onLoginSuccess = { /* State-driven navigation handles this */ },
+                onLanguageChange = onLanguageChange,
             )
         ) { navigator ->
             SlideTransition(navigator)

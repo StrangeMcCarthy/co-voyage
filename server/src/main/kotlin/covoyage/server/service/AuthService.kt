@@ -124,4 +124,80 @@ class AuthService(private val mongoConfig: MongoConfig) {
 
         return AuthResponse(success = true, message = "Password changed successfully")
     }
+
+    /**
+     * Forgot Password — generates a 6-digit OTP and stores it.
+     */
+    suspend fun forgotPassword(request: ForgotPasswordRequest, notificationService: NotificationService): AuthResponse {
+        val email = request.email.trim().lowercase()
+        val userDoc = users.find(Filters.eq("email", email)).firstOrNull()
+            ?: return AuthResponse(success = false, message = "No account found with this email")
+
+        val userId = userDoc.getString("id") ?: ""
+        val otp = (100000..999999).random().toString()
+        val expiry = Clock.System.now().toEpochMilliseconds() + (10 * 60 * 1000) // 10 minutes
+
+        val otps = mongoConfig.database.getCollection<Document>("otps")
+        otps.deleteMany(Filters.eq("email", email)) // Clear old OTPs
+        otps.insertOne(Document().apply {
+            put("email", email)
+            put("otp", otp)
+            put("expiry", expiry)
+        })
+
+        // Deliver OTP via Push Notification (if possible)
+        notificationService.sendToUser(
+            userId,
+            "Password Reset OTP",
+            "Your CoVoyage verification code is: $otp",
+            mapOf("type" to "otp_delivery", "otp" to otp)
+        )
+
+        // For demo/testing, we'll return it in the response as well so the user can easily see it
+        return AuthResponse(
+            success = true,
+            message = "OTP sent successfully to your account",
+            otp = otp // Remove this in production for security!
+        )
+    }
+
+    /**
+     * Reset Password — verifies OTP and updates password.
+     */
+    suspend fun resetPassword(request: ResetPasswordRequest): AuthResponse {
+        val email = request.email.trim().lowercase()
+        val otps = mongoConfig.database.getCollection<Document>("otps")
+        val otpDoc = otps.find(Filters.eq("email", email)).firstOrNull()
+            ?: return AuthResponse(success = false, message = "No reset request found for this email")
+
+        val storedOtp = otpDoc.getString("otp")
+        val expiry = otpDoc.getLong("expiry") ?: 0L
+
+        if (storedOtp != request.otp) {
+            return AuthResponse(success = false, message = "Invalid OTP")
+        }
+        if (Clock.System.now().toEpochMilliseconds() > expiry) {
+            otps.deleteOne(Filters.eq("email", email))
+            return AuthResponse(success = false, message = "OTP has expired")
+        }
+
+        if (request.newPassword.length < 6) {
+            return AuthResponse(success = false, message = "New password must be at least 6 characters")
+        }
+
+        // Update password
+        val newHash = SecurityUtils.hashPassword(request.newPassword)
+        users.updateOne(
+            Filters.eq("email", email),
+            Updates.combine(
+                Updates.set("passwordHash", newHash),
+                Updates.set("updatedAt", Clock.System.now().toString()),
+            ),
+        )
+
+        // Clean up OTP
+        otps.deleteOne(Filters.eq("email", email))
+
+        return AuthResponse(success = true, message = "Password reset successfully")
+    }
 }

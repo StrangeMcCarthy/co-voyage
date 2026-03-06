@@ -22,4 +22,8 @@ interface AuthRepository {
     suspend fun updatePayoutPhoneNumber(number: String): Result<UserProfile>
     suspend fun logout()
     fun isLoggedIn(): Boolean
+    
+    // Forgot Password
+    suspend fun forgotPassword(email: String): Result<String> // Returns the OTP (for testing/demo)
+    suspend fun resetPassword(email: String, otp: String, newPassword: String): Result<Boolean>
 }

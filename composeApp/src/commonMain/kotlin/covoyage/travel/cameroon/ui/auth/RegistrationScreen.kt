@@ -20,12 +20,15 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import covoyage.travel.cameroon.data.model.UserType
+import covoyage.travel.cameroon.i18n.Language
+import covoyage.travel.cameroon.i18n.LocalLanguage
 import covoyage.travel.cameroon.i18n.LocalStrings
 import covoyage.travel.cameroon.ui.components.CoVoyageButton
 import covoyage.travel.cameroon.ui.components.CoVoyageTextField
 
 class RegistrationScreen(
     private val authScreenModel: AuthScreenModel,
+    private val onLanguageChange: (Language) -> Unit,
 ) : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -35,6 +38,7 @@ class RegistrationScreen(
         val uiState by authScreenModel.uiState.collectAsState()
         var passwordVisible by remember { mutableStateOf(false) }
         val strings = LocalStrings.current
+        val currentLanguage = LocalLanguage.current
 
         Scaffold(
             topBar = {
@@ -221,6 +225,33 @@ class RegistrationScreen(
                     )
                     TextButton(onClick = { navigator.pop() }) {
                         Text(strings.signIn, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Language toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Language.entries.forEach { lang ->
+                        val isSelected = lang == currentLanguage
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { onLanguageChange(lang) },
+                            label = {
+                                Text(
+                                    "${lang.flag} ${lang.displayName}",
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                )
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.primary,
+                            ),
+                        )
                     }
                 }
 

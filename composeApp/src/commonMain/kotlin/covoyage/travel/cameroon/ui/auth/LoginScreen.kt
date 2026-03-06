@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import covoyage.travel.cameroon.i18n.Language
+import covoyage.travel.cameroon.i18n.LocalLanguage
 import covoyage.travel.cameroon.i18n.LocalStrings
 import covoyage.travel.cameroon.ui.components.CoVoyageButton
 import covoyage.travel.cameroon.ui.components.CoVoyageTextField
@@ -29,6 +31,7 @@ import covoyage.travel.cameroon.ui.components.CoVoyageTextField
 class LoginScreen(
     private val authScreenModel: AuthScreenModel,
     private val onLoginSuccess: () -> Unit,
+    private val onLanguageChange: (Language) -> Unit,
 ) : Screen {
 
     @Composable
@@ -37,6 +40,7 @@ class LoginScreen(
         val uiState by authScreenModel.uiState.collectAsState()
         var passwordVisible by remember { mutableStateOf(false) }
         val strings = LocalStrings.current
+        val currentLanguage = LocalLanguage.current
 
         Column(
             modifier = Modifier
@@ -128,7 +132,21 @@ class LoginScreen(
                 shape = RoundedCornerShape(12.dp),
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                TextButton(onClick = { 
+                    authScreenModel.resetForgotPasswordFlow()
+                    navigator.push(ForgotPasswordScreen(authScreenModel, onLanguageChange)) 
+                }) {
+                    Text(
+                        text = strings.forgotPassword,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             CoVoyageButton(
                 text = strings.signIn,
@@ -147,6 +165,7 @@ class LoginScreen(
                     navigator.push(
                         RegistrationScreen(
                             authScreenModel = authScreenModel,
+                            onLanguageChange = onLanguageChange,
                         )
                     )
                 }) {
@@ -178,6 +197,33 @@ class LoginScreen(
                         text = strings.demoAccountsDetail,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Language toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Language.entries.forEach { lang ->
+                    val isSelected = lang == currentLanguage
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onLanguageChange(lang) },
+                        label = {
+                            Text(
+                                "${lang.flag} ${lang.displayName}",
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            )
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.primary,
+                        ),
                     )
                 }
             }
