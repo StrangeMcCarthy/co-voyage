@@ -2,8 +2,9 @@ package covoyage.server.service
 
 import com.mongodb.client.model.Filters
 import covoyage.server.database.MongoConfig
+import covoyage.server.model.*
 import kotlinx.coroutines.flow.toList
-import kotlinx.serialization.Serializable
+import kotlinx.datetime.*
 import org.bson.Document
 
 /**
@@ -21,36 +22,41 @@ class DashboardService(private val mongoConfig: MongoConfig) {
      * Overview stats for dashboard header cards.
      */
     suspend fun getOverviewStats(): DashboardStats {
-        val allPayments = payments.find().toList()
-        val allJourneys = journeys.find().toList()
-        val allBookings = bookings.find().toList()
-        val allUsers = users.find().toList()
+        return try {
+            val allPayments = payments.find().toList()
+            val allJourneys = journeys.find().toList()
+            val allBookings = bookings.find().toList()
+            val allUsers = users.find().toList()
 
-        val totalRevenue = allPayments
-            .filter { it.getString("status") in listOf("HELD", "RELEASED") }
-            .sumOf { it.getInteger("amount", 0) }
+            val totalRevenue = allPayments
+                .filter { it.getString("status") in listOf("HELD", "RELEASED") }
+                .sumOf { it.getInteger("amount", 0) }
 
-        val platformFees = allPayments
-            .filter { it.getString("status") in listOf("HELD", "RELEASED") }
-            .sumOf { it.getInteger("platformFee", 0) }
+            val platformFees = allPayments
+                .filter { it.getString("status") in listOf("HELD", "RELEASED") }
+                .sumOf { it.getInteger("platformFee", 0) }
 
-        val pendingPayments = allPayments.count { it.getString("status") == "PENDING" }
-        val heldPayments = allPayments.count { it.getString("status") == "HELD" }
-        val releasedPayments = allPayments.count { it.getString("status") == "RELEASED" }
-        val failedPayments = allPayments.count { it.getString("status") == "FAILED" }
+            val pendingPayments = allPayments.count { it.getString("status") == "PENDING" }
+            val heldPayments = allPayments.count { it.getString("status") == "HELD" }
+            val releasedPayments = allPayments.count { it.getString("status") == "RELEASED" }
+            val failedPayments = allPayments.count { it.getString("status") == "FAILED" }
 
-        return DashboardStats(
-            totalRevenue = totalRevenue,
-            platformFees = platformFees,
-            totalPayments = allPayments.size,
-            pendingPayments = pendingPayments,
-            heldPayments = heldPayments,
-            releasedPayments = releasedPayments,
-            failedPayments = failedPayments,
-            totalJourneys = allJourneys.size,
-            totalBookings = allBookings.size,
-            totalUsers = allUsers.size,
-        )
+            DashboardStats(
+                totalRevenue = totalRevenue,
+                platformFees = platformFees,
+                totalPayments = allPayments.size,
+                pendingPayments = pendingPayments,
+                heldPayments = heldPayments,
+                releasedPayments = releasedPayments,
+                failedPayments = failedPayments,
+                totalJourneys = allJourneys.size,
+                totalBookings = allBookings.size,
+                totalUsers = allUsers.size,
+            )
+        } catch (e: Exception) {
+            println("DashboardService: Error fetching stats (MongoDB might be down): ${e.message}")
+            DashboardStats() // Return empty stats
+        }
     }
 
     /**
@@ -130,67 +136,83 @@ class DashboardService(private val mongoConfig: MongoConfig) {
             )
         }
     }
+
+    /**
+     * All users for the user management table.
+     */
+    suspend fun getAllUsers(): List<UserRow> {
+        return try {
+            users.find().toList().map { doc ->
+                UserRow(
+                    id = doc.getString("id") ?: "",
+                    name = doc.getString("name") ?: "(No Name)",
+                    email = doc.getString("email") ?: "",
+                    phone = doc.getString("phone") ?: "",
+                    role = doc.getString("userType") ?: "PASSENGER",
+                    status = doc.getString("status") ?: "Active",
+                    createdAt = doc.getString("createdAt") ?: ""
+                )
+            }
+        } catch (e: Exception) {
+            println("DashboardService: Error fetching users: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /**
+     * Aggregate journey counts by day of week (Mon–Sun) for ride volume chart.
+     * Parses `departureDate` strings and groups by day-of-week.
+     */
+    suspend fun getRideVolumeByDayOfWeek(): List<Int> {
+        return try {
+            val journeys = mongoConfig.database.getCollection<Document>("journeys")
+            val dayCountMap = mutableMapOf<Int, Int>() // 1=Mon,...,7=Sun
+            journeys.find().toList().forEach { doc ->
+                val dateStr = doc.getString("departureDate") ?: return@forEach
+                try {
+                    val date = kotlinx.datetime.LocalDate.parse(dateStr)
+                    val dow = date.dayOfWeek.value // 1=Monday..7=Sunday
+                    dayCountMap[dow] = (dayCountMap[dow] ?: 0) + 1
+                } catch (_: Exception) { /* skip unparseable dates */ }
+            }
+            // Return Mon..Sun in order
+            (1..7).map { dayCountMap[it] ?: 0 }
+        } catch (e: Exception) {
+            println("DashboardService: Error fetching ride volume: ${e.message}")
+            listOf(0, 0, 0, 0, 0, 0, 0)
+        }
+    }
+
+    /**
+     * Count users registered per week in the current month for user growth chart.
+     */
+    suspend fun getUserGrowthByWeek(): List<Int> {
+        return try {
+            val users = mongoConfig.database.getCollection<Document>("users")
+            val tz = kotlinx.datetime.TimeZone.currentSystemDefault()
+            val now = kotlinx.datetime.Clock.System.now()
+            val nowLocal = now.toLocalDateTime(tz)
+            val currentYear = nowLocal.year
+            val currentMonth = nowLocal.monthNumber
+
+            val weekCounts = mutableMapOf(1 to 0, 2 to 0, 3 to 0, 4 to 0)
+            users.find().toList().forEach { doc ->
+                val createdAt = doc.getString("createdAt") ?: return@forEach
+                try {
+                    // Parse ISO instant string
+                    val instant = kotlinx.datetime.Instant.parse(createdAt)
+                    val localDate = instant.toLocalDateTime(tz)
+                    if (localDate.year == currentYear && localDate.monthNumber == currentMonth) {
+                        val weekOfMonth = ((localDate.dayOfMonth - 1) / 7 + 1).coerceIn(1, 4)
+                        weekCounts[weekOfMonth] = (weekCounts[weekOfMonth] ?: 0) + 1
+                    }
+                } catch (_: Exception) { /* skip unparseable dates */ }
+            }
+            (1..4).map { weekCounts[it] ?: 0 }
+        } catch (e: Exception) {
+            println("DashboardService: Error fetching user growth: ${e.message}")
+            listOf(0, 0, 0, 0)
+        }
+    }
 }
 
-// ── Dashboard DTOs ──
-
-@Serializable
-data class DashboardStats(
-    val totalRevenue: Int = 0,
-    val platformFees: Int = 0,
-    val totalPayments: Int = 0,
-    val pendingPayments: Int = 0,
-    val heldPayments: Int = 0,
-    val releasedPayments: Int = 0,
-    val failedPayments: Int = 0,
-    val totalJourneys: Int = 0,
-    val totalBookings: Int = 0,
-    val totalUsers: Int = 0,
-)
-
-@Serializable
-data class PaymentRow(
-    val id: String,
-    val passengerName: String,
-    val passengerPhone: String,
-    val amount: Int,
-    val platformFee: Int,
-    val driverPayout: Int,
-    val paymentMethod: String,
-    val status: String,
-    val txRef: String,
-    val flwRef: String,
-    val createdAt: String,
-)
-
-@Serializable
-data class RevenueByMethod(
-    val method: String,
-    val count: Int,
-    val totalAmount: Int,
-    val platformFees: Int,
-)
-
-@Serializable
-data class JourneyRow(
-    val id: String,
-    val departureCity: String,
-    val arrivalCity: String,
-    val driverName: String,
-    val departureDate: String,
-    val totalSeats: Int,
-    val availableSeats: Int,
-    val pricePerSeat: Int,
-    val status: String,
-)
-
-@Serializable
-data class BookingRow(
-    val id: String,
-    val journeyId: String,
-    val passengerName: String,
-    val seatsBooked: Int,
-    val totalAmount: Int,
-    val status: String,
-    val createdAt: String,
-)

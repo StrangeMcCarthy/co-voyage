@@ -8,12 +8,14 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
 import org.bson.Document
+import java.util.UUID
 
 /**
  * CRUD for passenger ride requests.
  */
 class RideRequestService(
     private val mongoConfig: MongoConfig,
+    private val matchingService: MatchingService,
 ) {
     private val requests get() = mongoConfig.database.getCollection<Document>("ride_requests")
 
@@ -21,7 +23,7 @@ class RideRequestService(
      * Create a new ride request (passenger posts a request).
      */
     suspend fun createRideRequest(doc: Document): ApiResponse {
-        val id = "request-${Clock.System.now().toEpochMilliseconds()}"
+        val id = "request-${UUID.randomUUID()}"
         doc.put("id", id)
         doc.put("status", "OPEN")
         doc.put("createdAt", Clock.System.now().toString())
@@ -29,14 +31,28 @@ class RideRequestService(
         return ApiResponse(
             success = true,
             message = "Ride request posted",
-        )
+        ).also {
+            matchingService.notifyMatches(
+                doc.getString("departureCity") ?: "",
+                doc.getString("arrivalCity") ?: "",
+                "REQUEST",
+                id
+            )
+        }
     }
 
     /**
      * Get all open ride requests (public feed for drivers).
+     * Automatically filters out past requests (travelDate < today).
      */
     suspend fun getAllOpenRequests(): List<Document> {
-        return requests.find(Filters.eq("status", "OPEN")).toList()
+        val today = Clock.System.now().toString().take(10) // "YYYY-MM-DD"
+        return requests.find(
+            Filters.and(
+                Filters.eq("status", "OPEN"),
+                Filters.gte("travelDate", today)
+            )
+        ).toList()
     }
 
     /**

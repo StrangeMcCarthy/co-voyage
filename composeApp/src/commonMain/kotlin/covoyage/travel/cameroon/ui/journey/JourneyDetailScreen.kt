@@ -24,6 +24,8 @@ import covoyage.travel.cameroon.data.model.UserProfile
 import covoyage.travel.cameroon.i18n.LocalStrings
 import covoyage.travel.cameroon.ui.booking.BookingScreen
 import covoyage.travel.cameroon.ui.booking.BookingScreenModel
+import covoyage.travel.cameroon.ui.chat.ChatScreen
+import covoyage.travel.cameroon.ui.chat.ChatScreenModel
 
 class JourneyDetailScreen(
     private val journey: Journey,
@@ -114,6 +116,28 @@ class JourneyDetailScreen(
                                     strings.to,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+
+                        if (journey.departurePoint.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = journey.departurePoint,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
                         }
@@ -209,6 +233,21 @@ class JourneyDetailScreen(
                         )
                     }
                 }
+
+                /*
+                // Group Chat Button (Not supported by server yet)
+                OutlinedButton(
+                    onClick = {
+                        // TODO: Implement journey group chat
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Icon(Icons.Default.Group, null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Ride Group Chat")
+                }
+                */
 
                 Spacer(modifier = Modifier.height(16.dp))
             }

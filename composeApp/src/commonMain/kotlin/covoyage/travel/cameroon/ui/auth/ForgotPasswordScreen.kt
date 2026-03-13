@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +33,7 @@ class ForgotPasswordScreen(
     private val onLanguageChange: (Language) -> Unit,
 ) : Screen {
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -78,7 +80,7 @@ class ForgotPasswordScreen(
                     },
                     contentDescription = null,
                     modifier = Modifier.size(80.dp),
-                    color = if (uiState.resetSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                    tint = if (uiState.resetSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -114,7 +116,7 @@ class ForgotPasswordScreen(
                                         onValueChange = authScreenModel::updateForgotEmail,
                                         label = strings.email,
                                         leadingIcon = Icons.Default.Email,
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                                        keyboardType = KeyboardType.Email
                                     )
                                     Spacer(modifier = Modifier.height(32.dp))
                                     CoVoyageButton(
@@ -136,7 +138,7 @@ class ForgotPasswordScreen(
                                         onValueChange = { if (it.length <= 6) authScreenModel.updateResetOtp(it) },
                                         label = strings.verificationCode,
                                         leadingIcon = Icons.Default.VpnKey,
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                        keyboardType = KeyboardType.Number
                                     )
                                     Spacer(modifier = Modifier.height(32.dp))
                                     CoVoyageButton(

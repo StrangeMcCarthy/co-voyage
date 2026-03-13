@@ -41,6 +41,7 @@ class PaymentService(
             put("passengerEmail", request.passengerEmail)
             put("passengerPhone", request.passengerPhone)
             put("driverId", request.driverId)
+            put("seatsBooked", request.seatsBooked)
             put("amount", request.totalAmount)
             put("platformFee", platformFee)
             put("driverPayout", driverPayout)
@@ -155,6 +156,13 @@ class PaymentService(
     }
 
     /**
+     * Verify Flutterwave webhook signature.
+     */
+    fun verifyWebhookSignature(headerHash: String?): Boolean {
+        return flutterwaveService.verifyWebhookSignature(headerHash)
+    }
+
+    /**
      * Handle Flutterwave webhook (charge.completed).
      * On success → set payment to HELD (escrow).
      */
@@ -168,6 +176,24 @@ class PaymentService(
             if (verification.status == "success" && verification.data?.status == "successful") {
                 updatePaymentStatus(txRef, "HELD")
                 updatePaymentFlwRefs(txRef, data.flwRef, data.id)
+                
+                // Decrement available seats in the journey
+                try {
+                    val paymentDoc = payments.find(Filters.eq("id", txRef)).firstOrNull()
+                    val journeyId = paymentDoc?.getString("journeyId")
+                    val seatsBooked = paymentDoc?.getInteger("seatsBooked", 1) ?: 1
+                    
+                    if (journeyId != null) {
+                        val journeys = mongoConfig.database.getCollection<Document>("journeys")
+                        journeys.updateOne(
+                            Filters.eq("id", journeyId),
+                            Updates.inc("availableSeats", -seatsBooked)
+                        )
+                    }
+                } catch (e: Exception) {
+                    println("Error decrementing seats for payment $txRef: ${e.message}")
+                }
+                
                 true
             } else {
                 updatePaymentStatus(txRef, "FAILED")

@@ -15,11 +15,13 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import covoyage.travel.cameroon.data.model.Journey
 import covoyage.travel.cameroon.data.model.JourneyStatus
+import covoyage.travel.cameroon.data.model.Journey
 import covoyage.travel.cameroon.data.model.UserProfile
 import covoyage.travel.cameroon.i18n.LocalStrings
 import covoyage.travel.cameroon.i18n.Strings
+import covoyage.travel.cameroon.ui.chat.ChatScreen
+import covoyage.travel.cameroon.ui.chat.ChatScreenModel
 import covoyage.travel.cameroon.ui.journey.CreateJourneyScreen
 import covoyage.travel.cameroon.ui.journey.JourneyScreenModel
 import covoyage.travel.cameroon.ui.theme.SuccessGreen
@@ -100,16 +102,16 @@ class DriverDashboardScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🚐", style = MaterialTheme.typography.displayLarge)
+                        Icon(
+                            Icons.Default.DirectionsCar,
+                            null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.outline,
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             strings.noTripsYet,
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            strings.createFirstTrip,
-                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.outline,
                         )
                     }
@@ -118,12 +120,13 @@ class DriverDashboardScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     items(uiState.myJourneys) { journey ->
                         DriverJourneyCard(
                             journey = journey,
                             strings = strings,
+                            currentUser = currentUser,
                             onStart = { driverScreenModel.startTrip(journey.id, currentUser.id) },
                             onComplete = { driverScreenModel.completeTrip(journey.id, currentUser.id) },
                             onCancel = { driverScreenModel.cancelJourney(journey.id, currentUser.id) },
@@ -132,13 +135,24 @@ class DriverDashboardScreen(
                 }
             }
 
-            // Payout bottom sheet
-            if (uiState.showPayouts && uiState.payoutSummary != null) {
-                navigator.push(
-                    PayoutHistoryScreen(
-                        payoutSummary = uiState.payoutSummary!!,
-                        onDismiss = { driverScreenModel.hidePayouts() },
-                    )
+            if (uiState.showPayouts) {
+                // This would be a sheet or dialog
+                AlertDialog(
+                    onDismissRequest = { driverScreenModel.hidePayouts() },
+                    confirmButton = {
+                        TextButton(onClick = { driverScreenModel.hidePayouts() }) {
+                            Text(strings.close)
+                        }
+                    },
+                    title = { Text(strings.payouts) },
+                    text = {
+                        Column {
+                            Text("${strings.phone}: ${currentUser.payoutPhoneNumber.ifBlank { currentUser.phone }}")
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(strings.payoutHistory)
+                            // List payouts here
+                        }
+                    }
                 )
             }
         }
@@ -149,10 +163,12 @@ class DriverDashboardScreen(
 private fun DriverJourneyCard(
     journey: Journey,
     strings: Strings,
+    currentUser: UserProfile,
     onStart: () -> Unit,
     onComplete: () -> Unit,
     onCancel: () -> Unit,
 ) {
+    val navigator = LocalNavigator.currentOrThrow
     var showConfirmDialog by remember { mutableStateOf(false) }
     var confirmAction by remember { mutableStateOf("") }
 
@@ -174,7 +190,17 @@ private fun DriverJourneyCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
-                JourneyStatusChip(journey.status, strings)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    /* 
+                    // Journey group chat not yet supported by server
+                    IconButton(onClick = {
+                        // TODO: Implement journey group chat
+                    }) {
+                        Icon(Icons.Default.Group, null, tint = MaterialTheme.colorScheme.primary)
+                    }
+                    */
+                    JourneyStatusChip(journey.status, strings)
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -292,6 +318,7 @@ private fun JourneyStatusChip(status: JourneyStatus, strings: Strings) {
         JourneyStatus.IN_PROGRESS -> SuccessGreen to strings.statusInProgress
         JourneyStatus.COMPLETED -> MaterialTheme.colorScheme.outline to strings.statusCompleted
         JourneyStatus.CANCELLED -> MaterialTheme.colorScheme.error to strings.statusCancelled
+        else -> MaterialTheme.colorScheme.outline to "" // Fallback for safety in KMP
     }
     Surface(
         shape = RoundedCornerShape(8.dp),

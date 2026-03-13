@@ -51,7 +51,7 @@ data class FlwChargeData(
     val status: String = "",       // "pending", "successful", "failed"
     @SerialName("payment_type") val paymentType: String = "",
     @SerialName("created_at") val createdAt: String = "",
-    val processor_response: String = "",
+    @SerialName("processor_response") val processorResponse: String = "",
 )
 
 @Serializable

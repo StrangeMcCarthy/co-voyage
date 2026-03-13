@@ -63,8 +63,13 @@ fun CoVoyageTextField(
         ),
         shape = RoundedCornerShape(14.dp),
         colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            cursorColor = MaterialTheme.colorScheme.primary,
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
     )
 }
@@ -119,8 +124,13 @@ fun CoVoyagePasswordField(
         ),
         shape = RoundedCornerShape(14.dp),
         colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            cursorColor = MaterialTheme.colorScheme.primary,
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
     )
 }

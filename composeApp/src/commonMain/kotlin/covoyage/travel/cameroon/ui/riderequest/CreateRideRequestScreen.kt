@@ -20,6 +20,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import covoyage.travel.cameroon.data.model.UserProfile
 import covoyage.travel.cameroon.i18n.LocalStrings
 import covoyage.travel.cameroon.ui.components.DatePickerField
+import covoyage.travel.cameroon.ui.components.TownAutoCompleteTextField
 import covoyage.travel.cameroon.util.InputValidator
 
 class CreateRideRequestScreen(
@@ -79,22 +80,16 @@ class CreateRideRequestScreen(
                     fontWeight = FontWeight.SemiBold,
                 )
 
-                OutlinedTextField(
+                TownAutoCompleteTextField(
                     value = uiState.departureCity,
                     onValueChange = rideRequestScreenModel::updateDepartureCity,
-                    label = { Text(strings.departureCity) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true,
+                    label = strings.departureCity,
                 )
 
-                OutlinedTextField(
-                    value = uiState.destinationCity,
-                    onValueChange = rideRequestScreenModel::updateDestinationCity,
-                    label = { Text(strings.destination) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true,
+                TownAutoCompleteTextField(
+                    value = uiState.arrivalCity,
+                    onValueChange = rideRequestScreenModel::updateArrivalCity,
+                    label = strings.arrivalCity,
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))

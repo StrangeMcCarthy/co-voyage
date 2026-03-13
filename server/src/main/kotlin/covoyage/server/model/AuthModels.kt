@@ -34,6 +34,7 @@ data class AuthResponse(
     val success: Boolean,
     val message: String,
     val user: AuthUserData? = null,
+    val token: String? = null,
     val otp: String? = null, // Temporary for development/testing if needed
 )
 
@@ -50,6 +51,18 @@ data class ResetPasswordRequest(
 )
 
 @Serializable
+data class PhoneOtpRequest(
+    val userId: String,
+    val phone: String,
+)
+
+@Serializable
+data class VerifyPhoneOtpRequest(
+    val userId: String,
+    val otp: String,
+)
+
+@Serializable
 data class AuthUserData(
     val id: String = "",
     val name: String = "",
@@ -58,4 +71,5 @@ data class AuthUserData(
     val userType: String = "PASSENGER",
     val drivingPermitNumber: String = "",
     val greyCardNumber: String = "",
+    val status: String = "ACTIVE",
 )

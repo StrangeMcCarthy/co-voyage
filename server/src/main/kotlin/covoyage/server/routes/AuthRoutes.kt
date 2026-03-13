@@ -73,5 +73,25 @@ fun Route.authRoutes(authService: AuthService, notificationService: Notification
                 response,
             )
         }
+
+        // Request Phone OTP
+        post("/request-otp") {
+            val request = call.receive<covoyage.server.model.PhoneOtpRequest>()
+            val response = authService.requestPhoneOtp(request.userId, request.phone, notificationService)
+            call.respond(
+                if (response.success) HttpStatusCode.OK else HttpStatusCode.BadRequest,
+                response,
+            )
+        }
+
+        // Verify Phone OTP
+        post("/verify-otp") {
+            val request = call.receive<covoyage.server.model.VerifyPhoneOtpRequest>()
+            val response = authService.verifyPhoneOtp(request.userId, request.otp)
+            call.respond(
+                if (response.success) HttpStatusCode.OK else HttpStatusCode.BadRequest,
+                response,
+            )
+        }
     }
 }

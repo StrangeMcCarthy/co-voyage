@@ -9,6 +9,7 @@ data class Journey(
     val driverName: String = "",
     val driverPhone: String = "",
     val departureCity: String = "",
+    val departurePoint: String = "", // e.g. "Total Shell Mvan"
     val arrivalCity: String = "",
     val departureDate: String = "",   // ISO date string e.g. "2026-03-15"
     val departureTime: String = "",   // e.g. "08:00"
@@ -37,11 +38,24 @@ enum class JourneyStatus {
  */
 object CameroonCities {
     val cities = listOf(
-        "Douala", "Yaoundé", "Bamenda", "Bafoussam", "Garoua",
-        "Maroua", "Kumba", "Nkongsamba", "Buea", "Limbe",
-        "Bertoua", "Ebolowa", "Ngaoundéré", "Kribi", "Dschang",
-        "Foumban", "Edéa", "Loum", "Mbalmayo", "Sangmélima",
-        "Tiko", "Kumbo", "Wum", "Mamfe", "Mbouda"
+        "Abong-Mbang", "Akonolinga", "Ambam", "Bafang", "Bafia",
+        "Bafoussam", "Baham", "Bali", "Bambui", "Bamenda",
+        "Bangangté", "Bankim", "Banyo", "Batibo", "Batouri",
+        "Belel", "Bélabo", "Bertoua", "Bibémi", "Blangoua",
+        "Bogo", "Buea", "Campo", "Dimako", "Dizangué",
+        "Djoum", "Douala", "Dschang", "Ebolowa", "Edéa",
+        "Eséka", "Figuil", "Fontem", "Foumban", "Foumbot",
+        "Fundong", "Garoua", "Garoua-Boulaï", "Guider", "Guidiguis",
+        "Kaélé", "Kribi", "Kumba", "Kumbo", "Kousséri",
+        "Lagdo", "Limbe", "Lolodorf", "Loum", "Mamfe",
+        "Manjo", "Martap", "Maroua", "Mbalmayo", "Mbandjock",
+        "Mbanga", "Mbouda", "Meiganga", "Melong", "Meyomessala",
+        "Mokolo", "Moloundou", "Monatélé", "Mora", "Mundemba",
+        "Mutengene", "Muyuka", "Nanga Eboko", "Ndop", "Ngaoundéré",
+        "Nkambe", "Nkongsamba", "Nkoteng", "Obala", "Penja",
+        "Pitoa", "Poli", "Rey Bouba", "Sangmélima", "Santa",
+        "Tibati", "Tiko", "Wum", "Yagoua", "Yaoundé",
+        "Yokadouma"
     )
 
     val popularRoutes = listOf(

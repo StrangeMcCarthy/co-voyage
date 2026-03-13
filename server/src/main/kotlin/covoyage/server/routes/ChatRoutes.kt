@@ -25,6 +25,21 @@ fun Route.chatRoutes(chatService: ChatService) {
             call.respond(HttpStatusCode.OK, messages)
         }
 
+        /** Mark messages as read */
+        put("/{bookingId}/read") {
+            val bookingId = call.parameters["bookingId"]
+                ?: return@put call.respond(HttpStatusCode.BadRequest, "Missing bookingId")
+            val userId = call.request.queryParameters["userId"]
+                ?: return@put call.respond(HttpStatusCode.BadRequest, "Missing userId")
+            chatService.markMessagesAsRead(bookingId, userId)
+            call.respond(HttpStatusCode.OK, mapOf("success" to true))
+        }
+
+        /** Get quick reply suggestions */
+        get("/quick-replies") {
+            call.respond(HttpStatusCode.OK, chatService.getQuickReplies())
+        }
+
         /** Send a message via REST (alternative to WebSocket) */
         post("/{bookingId}/send") {
             val bookingId = call.parameters["bookingId"]
@@ -35,6 +50,7 @@ fun Route.chatRoutes(chatService: ChatService) {
                 senderId = input.senderId,
                 senderName = input.senderName,
                 text = input.text,
+                imageUrl = input.imageUrl,
             )
             call.respond(HttpStatusCode.OK, message)
         }
@@ -61,6 +77,7 @@ fun Route.chatRoutes(chatService: ChatService) {
                                 senderId = input.senderId.ifBlank { userId },
                                 senderName = input.senderName,
                                 text = input.text,
+                                imageUrl = input.imageUrl,
                             )
                             // Echo back to sender as confirmation
                             send(Frame.Text(Json.encodeToString(

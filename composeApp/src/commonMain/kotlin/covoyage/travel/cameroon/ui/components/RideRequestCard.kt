@@ -87,10 +87,12 @@ fun RideRequestCard(
                     horizontalAlignment = Alignment.End,
                 ) {
                     Text(
-                        text = request.destinationCity,
+                        text = request.arrivalCity.ifBlank { "..." },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.primary, // Using primary for more contrast
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }

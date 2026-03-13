@@ -117,14 +117,16 @@ class AuthScreenModel(
 
     fun login() {
         val state = _uiState.value
-        if (state.loginEmail.isBlank() || state.loginPassword.isBlank()) {
+        val email = state.loginEmail.trim()
+        val password = state.loginPassword.trim()
+        if (email.isBlank() || password.isBlank()) {
             _uiState.value = state.copy(error = "Please fill in all fields")
             return
         }
 
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
-            val result = authRepository.login(state.loginEmail, state.loginPassword)
+            val result = authRepository.login(email, password)
             result.fold(
                 onSuccess = { user ->
                     _uiState.value = _uiState.value.copy(
@@ -145,27 +147,31 @@ class AuthScreenModel(
 
     fun register() {
         val state = _uiState.value
+        val name = state.regName.trim()
+        val email = state.regEmail.trim()
+        val phone = state.regPhone.trim()
+        val password = state.regPassword
 
         // Validation
-        if (state.regName.isBlank() || state.regEmail.isBlank() ||
-            state.regPhone.isBlank() || state.regPassword.isBlank()
+        if (name.isBlank() || email.isBlank() ||
+            phone.isBlank() || password.isBlank()
         ) {
             _uiState.value = state.copy(error = "Please fill in all required fields")
             return
         }
-        if (state.regPassword != state.regConfirmPassword) {
+        if (password != state.regConfirmPassword) {
             _uiState.value = state.copy(error = "Passwords do not match")
             return
         }
-        if (state.regPassword.length < 6) {
+        if (password.length < 6) {
             _uiState.value = state.copy(error = "Password must be at least 6 characters")
             return
         }
-        if (!InputValidator.isValidEmail(state.regEmail)) {
+        if (!InputValidator.isValidEmail(email)) {
             _uiState.value = state.copy(error = "Invalid email format")
             return
         }
-        if (!InputValidator.isValidCameroonPhone(state.regPhone)) {
+        if (!InputValidator.isValidCameroonPhone(phone)) {
             _uiState.value = state.copy(error = "Invalid Cameroon phone number")
             return
         }
@@ -199,10 +205,10 @@ class AuthScreenModel(
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
             val result = authRepository.register(
-                name = state.regName,
-                email = state.regEmail,
-                phone = state.regPhone,
-                password = state.regPassword,
+                name = name,
+                email = email,
+                phone = phone,
+                password = password,
                 userType = state.regUserType,
                 drivingPermitNumber = state.regDrivingPermit,
                 greyCardNumber = state.regGreyCard,
@@ -255,7 +261,7 @@ class AuthScreenModel(
     }
 
     fun requestOtp() {
-        val email = _uiState.value.forgotEmail
+        val email = _uiState.value.forgotEmail.trim()
         if (email.isBlank() || !InputValidator.isValidEmail(email)) {
             _uiState.value = _uiState.value.copy(error = "Please enter a valid email")
             return
@@ -305,7 +311,7 @@ class AuthScreenModel(
 
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
-            val result = authRepository.resetPassword(state.forgotEmail, state.resetOtp, state.resetNewPassword)
+            val result = authRepository.resetPassword(state.forgotEmail.trim(), state.resetOtp.trim(), state.resetNewPassword)
             result.fold(
                 onSuccess = {
                     _uiState.value = _uiState.value.copy(

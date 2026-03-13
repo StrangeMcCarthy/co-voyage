@@ -13,7 +13,7 @@ data class RideRequest(
     val passengerName: String = "",
     val passengerPhone: String = "",
     val departureCity: String = "",
-    val destinationCity: String = "",
+    val arrivalCity: String = "",
     val travelDate: String = "",       // ISO date e.g. "2026-03-01"
     val seatsNeeded: Int = 1,
     val message: String = "",          // optional note from passenger

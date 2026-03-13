@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.Image
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -22,6 +22,8 @@ import covoyage.travel.cameroon.data.model.Booking
 import covoyage.travel.cameroon.data.model.BookingStatus
 import covoyage.travel.cameroon.data.model.UserProfile
 import covoyage.travel.cameroon.i18n.LocalStrings
+import covoyage.travel.cameroon.ui.chat.ChatScreen
+import covoyage.travel.cameroon.ui.chat.ChatScreenModel
 import covoyage.travel.cameroon.ui.theme.SuccessGreen
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
@@ -36,6 +38,7 @@ class PassengerBookingsScreen(
     override fun Content() {
         val uiState by bookingScreenModel.uiState.collectAsState()
         val strings = LocalStrings.current
+        val navigator = LocalNavigator.currentOrThrow
 
         LaunchedEffect(Unit) {
             bookingScreenModel.loadMyBookings(currentUser.id)
@@ -74,6 +77,7 @@ class PassengerBookingsScreen(
                     items(uiState.myBookings) { booking ->
                         PassengerBookingCard(
                             booking = booking,
+                            currentUser = currentUser,
                             onConfirm = { bookingScreenModel.confirmRide(booking.id) }
                         )
                     }
@@ -84,7 +88,12 @@ class PassengerBookingsScreen(
 }
 
 @Composable
-fun PassengerBookingCard(booking: Booking, onConfirm: () -> Unit) {
+fun PassengerBookingCard(
+    booking: Booking,
+    currentUser: UserProfile,
+    onConfirm: () -> Unit
+) {
+    val navigator = LocalNavigator.currentOrThrow
     val strings = LocalStrings.current
     
     Card(
@@ -103,15 +112,30 @@ fun PassengerBookingCard(booking: Booking, onConfirm: () -> Unit) {
                     "Booking ID: ${booking.id.takeLast(6)}",
                     fontWeight = FontWeight.Bold
                 )
-                BookingStatusChip(booking.status)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = {
+                        navigator.push(
+                            ChatScreen(
+                                chatScreenModel = ChatScreenModel(
+                                    bookingId = booking.id,
+                                    currentUserId = currentUser.id,
+                                    currentUserName = currentUser.name,
+                                ),
+                                otherPartyName = "Ride Group Chat",
+                                currentUserId = currentUser.id,
+                            )
+                        )
+                    }) {
+                        Icon(Icons.Default.Chat, null, tint = MaterialTheme.colorScheme.primary)
+                    }
+                    BookingStatusChip(booking.status)
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
             
             Text("Seats: ${booking.seatsBooked}")
             Text("Total: ${booking.totalAmount} XAF")
-
-
 
             // 1-HOUR CONFIRMATION PROMPT
             if (booking.status == BookingStatus.COMPLETED_BY_DRIVER && booking.completedAt != null) {

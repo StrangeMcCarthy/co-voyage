@@ -60,8 +60,10 @@ fun Route.paymentRoutes(paymentService: PaymentService) {
 
             // Verify webhook signature
             val verifyHash = call.request.header("verif-hash")
-            // Note: signature verification should be done in production
-            // For now we process all webhooks
+            if (!paymentService.verifyWebhookSignature(verifyHash)) {
+                call.respond(HttpStatusCode.Unauthorized, mapOf("status" to "invalid signature"))
+                return@post
+            }
 
             val success = paymentService.handleWebhook(payload)
             if (success) {

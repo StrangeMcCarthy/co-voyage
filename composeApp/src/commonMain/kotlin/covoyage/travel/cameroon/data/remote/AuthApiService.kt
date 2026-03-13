@@ -81,6 +81,7 @@ data class AuthResponse(
     val success: Boolean,
     val message: String,
     val user: AuthUserData? = null,
+    val token: String? = null,
     val otp: String? = null,
 )
 
@@ -93,4 +94,5 @@ data class AuthUserData(
     val userType: String = "",
     val drivingPermitNumber: String = "",
     val greyCardNumber: String = "",
+    val status: String = "ACTIVE",
 )

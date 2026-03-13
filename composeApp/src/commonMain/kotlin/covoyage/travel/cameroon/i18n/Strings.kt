@@ -28,6 +28,7 @@ data class Strings(
     val clear: String,
     val refresh: String,
     val total: String,
+    val close: String,
     val error: String,
     val loading: String,
 
@@ -251,6 +252,7 @@ fun stringsEn() = Strings(
     clear = "Clear",
     refresh = "Refresh",
     total = "Total",
+    close = "Close",
     error = "Error",
     loading = "Loading…",
 
@@ -474,6 +476,7 @@ fun stringsFr() = Strings(
     clear = "Effacer",
     refresh = "Actualiser",
     total = "Total",
+    close = "Fermer",
     error = "Erreur",
     loading = "Chargement…",
 

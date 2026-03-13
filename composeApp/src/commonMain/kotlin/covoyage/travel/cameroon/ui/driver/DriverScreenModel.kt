@@ -10,6 +10,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.minus
 
 import covoyage.travel.cameroon.data.repository.BookingRepository
 import covoyage.travel.cameroon.data.model.BookingStatus
@@ -36,9 +40,39 @@ class DriverScreenModel(
             _uiState.value = _uiState.value.copy(isLoading = true, error = "")
             journeyRepository.getJourneysByDriver(driverId).fold(
                 onSuccess = { journeys ->
+                    val today = Clock.System.now().toString().take(10)
+                    val sevenDaysAgo = try {
+                        val currentLocalDate = LocalDate.parse(today)
+                        currentLocalDate.minus(7, DateTimeUnit.DAY).toString()
+                    } catch (e: Exception) {
+                        ""
+                    }
+
+                    val filteredAndSorted = journeys
+                        .filter { journey ->
+                            // Hide completed/cancelled trips older than 7 days
+                            if (journey.status == JourneyStatus.COMPLETED || journey.status == JourneyStatus.CANCELLED) {
+                                journey.departureDate >= sevenDaysAgo
+                            } else {
+                                true
+                            }
+                        }
+                        .sortedWith(
+                            compareBy<Journey> {
+                                // Priority 1: Status (SCHEDULED/IN_PROGRESS first)
+                                if (it.status == JourneyStatus.SCHEDULED || it.status == JourneyStatus.IN_PROGRESS) 0 else 1
+                            }.thenBy {
+                                // Priority 2: Date (closest departure date at top)
+                                it.departureDate
+                            }.thenByDescending {
+                                // Priority 3: Tie-breaker (latest created first)
+                                it.createdAt
+                            }
+                        )
+
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        myJourneys = journeys.sortedByDescending { it.createdAt },
+                        myJourneys = filteredAndSorted,
                     )
                 },
                 onFailure = { e ->

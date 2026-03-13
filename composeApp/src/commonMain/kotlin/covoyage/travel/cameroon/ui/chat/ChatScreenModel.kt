@@ -43,7 +43,8 @@ class ChatScreenModel(
         screenModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val response = httpClient.get("$serverBaseUrl/api/chat/$bookingId")
+                val endpoint = "$serverBaseUrl/api/chat/$bookingId"
+                val response = httpClient.get(endpoint)
                 val messages = response.body<List<ChatMessage>>()
                 _uiState.value = _uiState.value.copy(
                     messages = messages,
@@ -82,8 +83,10 @@ class ChatScreenModel(
                     inputText = "",
                 )
 
-                // POST via REST (simpler than WebSocket for initial impl)
-                val response = httpClient.post("$serverBaseUrl/api/chat/$bookingId/send") {
+                // POST via REST
+                val endpoint = "$serverBaseUrl/api/chat/$bookingId/send"
+
+                httpClient.post(endpoint) {
                     setBody(ChatInput(
                         senderId = currentUserId,
                         senderName = currentUserName,

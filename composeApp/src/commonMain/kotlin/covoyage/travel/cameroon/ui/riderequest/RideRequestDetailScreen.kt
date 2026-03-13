@@ -97,10 +97,10 @@ class RideRequestDetailScreen(
                                 tint = MaterialTheme.colorScheme.onTertiaryContainer,
                             )
                             Text(
-                                text = request.destinationCity,
+                                text = request.arrivalCity,
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     }

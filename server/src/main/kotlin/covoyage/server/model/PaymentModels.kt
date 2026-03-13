@@ -16,6 +16,7 @@ data class PaymentDocument(
     val passengerEmail: String = "",
     val passengerPhone: String = "",
     val driverId: String = "",
+    val seatsBooked: Int = 1,
     val amount: Int = 0,
     val platformFee: Int = 0,       // 10%
     val driverPayout: Int = 0,      // 90%

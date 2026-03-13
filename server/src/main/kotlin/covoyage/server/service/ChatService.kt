@@ -5,10 +5,12 @@ import com.mongodb.client.model.Sorts
 import covoyage.server.database.MongoConfig
 import covoyage.server.model.ChatMessage
 import io.ktor.websocket.*
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
 import org.bson.Document
 import org.slf4j.LoggerFactory
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -37,7 +39,7 @@ class ChatService(
      * Register a WebSocket session for a booking.
      */
     fun addSession(bookingId: String, userId: String, session: WebSocketSession) {
-        sessions.getOrPut(bookingId) { mutableSetOf() }.add(ChatSession(userId, session))
+        sessions.getOrPut(bookingId) { ConcurrentHashMap.newKeySet() }.add(ChatSession(userId, session))
         logger.info("Chat session added: booking=$bookingId, user=$userId")
     }
 
@@ -55,8 +57,8 @@ class ChatService(
     /**
      * Save a message and broadcast to all connected participants.
      */
-    suspend fun sendMessage(bookingId: String, senderId: String, senderName: String, text: String): ChatMessage {
-        val msgId = "msg-${Clock.System.now().toEpochMilliseconds()}"
+    suspend fun sendMessage(bookingId: String, senderId: String, senderName: String, text: String, imageUrl: String? = null): ChatMessage {
+        val msgId = "msg-${UUID.randomUUID()}"
         val timestamp = Clock.System.now().toString()
 
         val chatMessage = ChatMessage(
@@ -65,7 +67,9 @@ class ChatService(
             senderId = senderId,
             senderName = senderName,
             text = text,
+            imageUrl = imageUrl,
             timestamp = timestamp,
+            isRead = false,
         )
 
         // Persist to MongoDB
@@ -76,7 +80,9 @@ class ChatService(
                 put("senderId", senderId)
                 put("senderName", senderName)
                 put("text", text)
+                put("imageUrl", imageUrl)
                 put("timestamp", timestamp)
+                put("isRead", false)
             },
         )
 
@@ -124,19 +130,60 @@ class ChatService(
                     senderId = doc.getString("senderId") ?: "",
                     senderName = doc.getString("senderName") ?: "",
                     text = doc.getString("text") ?: "",
+                    imageUrl = doc.getString("imageUrl"),
                     timestamp = doc.getString("timestamp") ?: "",
+                    isRead = doc.getBoolean("isRead") ?: false,
                 )
             }
     }
 
     /**
-     * Get participant IDs for a booking from existing messages.
+     * Mark all messages in a booking as read for a specific recipient.
+     */
+    suspend fun markMessagesAsRead(bookingId: String, recipientId: String) {
+        messages.updateMany(
+            Filters.and(
+                Filters.eq("bookingId", bookingId),
+                Filters.ne("senderId", recipientId),
+                Filters.eq("isRead", false)
+            ),
+            com.mongodb.client.model.Updates.set("isRead", true)
+        )
+        logger.info("Messages marked as read for booking $bookingId, user $recipientId")
+    }
+
+    /**
+     * Get quick reply suggestions.
+     */
+    fun getQuickReplies(): List<covoyage.server.model.QuickReply> {
+        return listOf(
+            covoyage.server.model.QuickReply("1", "I'm on my way! 🚗"),
+            covoyage.server.model.QuickReply("2", "I've arrived at the pickup point. 📍"),
+            covoyage.server.model.QuickReply("3", "Could you please confirm your location? ❓"),
+            covoyage.server.model.QuickReply("4", "I'm running a few minutes late. ⏳"),
+            covoyage.server.model.QuickReply("5", "Okay, thanks! 👍")
+        )
+    }
+
+    /**
+     * Get participant IDs for a booking from bookings AND existing messages.
+     * This ensures newly booked passengers (who haven't sent messages yet) still get notifications.
      */
     private suspend fun getParticipantIds(bookingId: String): Set<String> {
-        return messages.find(Filters.eq("bookingId", bookingId))
+        val fromMessages = messages.find(Filters.eq("bookingId", bookingId))
             .toList()
             .map { it.getString("senderId") ?: "" }
             .filter { it.isNotBlank() }
             .toSet()
+
+        // Also check the bookings collection for the passenger and driver
+        val bookings = mongoConfig.database.getCollection<Document>("bookings")
+        val booking = bookings.find(Filters.eq("id", bookingId)).firstOrNull()
+        val fromBooking = listOfNotNull(
+            booking?.getString("passengerId"),
+            booking?.getString("driverId"),
+        ).filter { it.isNotBlank() }.toSet()
+
+        return fromMessages + fromBooking
     }
 }

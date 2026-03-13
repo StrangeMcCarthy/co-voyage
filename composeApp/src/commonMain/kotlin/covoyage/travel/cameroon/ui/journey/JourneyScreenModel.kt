@@ -23,6 +23,7 @@ data class JourneyUiState(
     val searchDate: String = "",
     // Create journey fields
     val departureCity: String = "",
+    val departurePoint: String = "",
     val arrivalCity: String = "",
     val departureDate: String = "",
     val departureTime: String = "",
@@ -137,6 +138,9 @@ class JourneyScreenModel(
     fun updateDepartureCity(city: String) {
         _uiState.value = _uiState.value.copy(departureCity = city, error = "")
     }
+    fun updateDeparturePoint(point: String) {
+        _uiState.value = _uiState.value.copy(departurePoint = point, error = "")
+    }
     fun updateArrivalCity(city: String) {
         _uiState.value = _uiState.value.copy(arrivalCity = city, error = "")
     }
@@ -217,6 +221,7 @@ class JourneyScreenModel(
                 driverName = driverName,
                 driverPhone = driverPhone,
                 departureCity = state.departureCity,
+                departurePoint = state.departurePoint,
                 arrivalCity = state.arrivalCity,
                 departureDate = state.departureDate,
                 departureTime = state.departureTime,
@@ -236,6 +241,7 @@ class JourneyScreenModel(
                         journeyCreated = true,
                         // Reset form
                         departureCity = "",
+                        departurePoint = "",
                         arrivalCity = "",
                         departureDate = "",
                         departureTime = "",

@@ -18,7 +18,7 @@ data class RideRequestUiState(
     val searchQuery: String = "",
     // Create form fields
     val departureCity: String = "",
-    val destinationCity: String = "",
+    val arrivalCity: String = "",
     val travelDate: String = "",
     val seatsNeeded: String = "1",
     val message: String = "",
@@ -28,7 +28,7 @@ data class RideRequestUiState(
         get() = if (searchQuery.isBlank()) requests
         else requests.filter { req ->
             req.departureCity.contains(searchQuery, ignoreCase = true) ||
-                req.destinationCity.contains(searchQuery, ignoreCase = true) ||
+                req.arrivalCity.contains(searchQuery, ignoreCase = true) ||
                 req.passengerName.contains(searchQuery, ignoreCase = true)
         }
 }
@@ -74,8 +74,8 @@ class RideRequestScreenModel(
         _uiState.value = _uiState.value.copy(departureCity = city, error = "")
     }
 
-    fun updateDestinationCity(city: String) {
-        _uiState.value = _uiState.value.copy(destinationCity = city, error = "")
+    fun updateArrivalCity(city: String) {
+        _uiState.value = _uiState.value.copy(arrivalCity = city, error = "")
     }
 
     fun updateTravelDate(date: String) {
@@ -92,7 +92,7 @@ class RideRequestScreenModel(
 
     fun createRequest(passengerId: String, passengerName: String, passengerPhone: String) {
         val state = _uiState.value
-        if (state.departureCity.isBlank() || state.destinationCity.isBlank() ||
+        if (state.departureCity.isBlank() || state.arrivalCity.isBlank() ||
             state.travelDate.isBlank()
         ) {
             _uiState.value = state.copy(error = "Please fill in all required fields")
@@ -117,7 +117,7 @@ class RideRequestScreenModel(
                 passengerName = passengerName,
                 passengerPhone = passengerPhone,
                 departureCity = state.departureCity,
-                destinationCity = state.destinationCity,
+                arrivalCity = state.arrivalCity,
                 travelDate = state.travelDate,
                 seatsNeeded = seats,
                 message = state.message,
@@ -130,7 +130,7 @@ class RideRequestScreenModel(
                         requestCreated = true,
                         // Reset form
                         departureCity = "",
-                        destinationCity = "",
+                        arrivalCity = "",
                         travelDate = "",
                         seatsNeeded = "1",
                         message = "",

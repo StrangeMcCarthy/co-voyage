@@ -13,4 +13,10 @@ class MongoConfig {
     private val client: MongoClient by lazy { MongoClient.create(connectionString) }
 
     val database: MongoDatabase by lazy { client.getDatabase(databaseName) }
+
+    init {
+        Runtime.getRuntime().addShutdownHook(Thread {
+            client.close()
+        })
+    }
 }

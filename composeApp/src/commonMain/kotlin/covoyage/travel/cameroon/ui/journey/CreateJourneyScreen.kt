@@ -26,6 +26,7 @@ import covoyage.travel.cameroon.ui.components.CoVoyageButton
 import covoyage.travel.cameroon.ui.components.CoVoyageTextField
 import covoyage.travel.cameroon.ui.components.DatePickerField
 import covoyage.travel.cameroon.ui.components.TimePickerField
+import covoyage.travel.cameroon.ui.components.TownAutoCompleteTextField
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 
@@ -97,7 +98,7 @@ class CreateJourneyScreen(
                 // Section: Route
                 SectionLabel(strings.route)
 
-                CoVoyageTextField(
+                TownAutoCompleteTextField(
                     value = uiState.departureCity,
                     onValueChange = journeyScreenModel::updateDepartureCity,
                     label = strings.departureCity,
@@ -106,6 +107,14 @@ class CreateJourneyScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 CoVoyageTextField(
+                    value = uiState.departurePoint,
+                    onValueChange = journeyScreenModel::updateDeparturePoint,
+                    label = "Departure Point (Pick up location)",
+                    leadingIcon = Icons.Default.LocationOn,
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                TownAutoCompleteTextField(
                     value = uiState.arrivalCity,
                     onValueChange = journeyScreenModel::updateArrivalCity,
                     label = strings.arrivalCity,

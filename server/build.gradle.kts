@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
@@ -6,6 +8,19 @@ plugins {
 
 application {
     mainClass.set("covoyage.server.ApplicationKt")
+}
+
+// Load local.properties
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
+
+tasks.withType<JavaExec> {
+    // Pass MongoDB properties from local.properties to the environment
+    localProperties.getProperty("MONGO_URI")?.let { environment("MONGO_URI", it) }
+    localProperties.getProperty("MONGO_DB")?.let { environment("MONGO_DB", it) }
 }
 
 dependencies {
@@ -17,6 +32,9 @@ dependencies {
     implementation(libs.ktor.server.statusPages)
     implementation(libs.ktor.server.callLogging)
     implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.auth.jwt)
+    implementation(libs.ktor.server.sessions)
+    implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.serialization.json)
 
     // Ktor client (for calling Flutterwave API)
@@ -45,4 +63,9 @@ dependencies {
 
     // Security — BCrypt password hashing
     implementation(libs.jbcrypt)
+}
+
+tasks.register<JavaExec>("testMongo") {
+    mainClass.set("covoyage.server.database.TestConnectionKt")
+    classpath = sourceSets["main"].runtimeClasspath
 }

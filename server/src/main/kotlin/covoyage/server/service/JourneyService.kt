@@ -3,12 +3,12 @@ package covoyage.server.service
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
 import covoyage.server.database.MongoConfig
-import covoyage.server.model.ApiResponse
-import covoyage.server.model.PaymentStatusResponse
+import covoyage.server.model.*
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
 import org.bson.Document
+import java.util.UUID
 
 /**
  * Journey CRUD + trip lifecycle management.
@@ -18,6 +18,7 @@ class JourneyService(
     private val mongoConfig: MongoConfig,
     private val paymentService: PaymentService,
     private val notificationService: NotificationService,
+    private val matchingService: MatchingService,
 ) {
     private val journeys get() = mongoConfig.database.getCollection<Document>("journeys")
     private val payments get() = mongoConfig.database.getCollection<Document>("payments")
@@ -26,7 +27,7 @@ class JourneyService(
      * Create a new journey. Driver posts a trip.
      */
     suspend fun createJourney(doc: Document): ApiResponse {
-        val id = "journey-${Clock.System.now().toEpochMilliseconds()}"
+        val id = "journey-${UUID.randomUUID()}"
         doc.put("id", id)
         doc.put("status", "SCHEDULED")
         doc.put("createdAt", Clock.System.now().toString())
@@ -35,7 +36,14 @@ class JourneyService(
             success = true,
             message = "Journey created",
             data = PaymentStatusResponse(paymentId = id, status = "SCHEDULED"),
-        )
+        ).also {
+            matchingService.notifyMatches(
+                doc.getString("departureCity") ?: "",
+                doc.getString("arrivalCity") ?: "",
+                "JOURNEY",
+                id
+            )
+        }
     }
 
     /**
@@ -59,9 +67,13 @@ class JourneyService(
         updates.getString("arrivalCity")?.let { updateOps.add(Updates.set("arrivalCity", it)) }
         updates.getString("departureDate")?.let { updateOps.add(Updates.set("departureDate", it)) }
         updates.getString("departureTime")?.let { updateOps.add(Updates.set("departureTime", it)) }
-        updates.getInteger("totalSeats")?.let {
-            updateOps.add(Updates.set("totalSeats", it))
-            updateOps.add(Updates.set("availableSeats", it))
+        updates.getInteger("totalSeats")?.let { newTotal ->
+            val oldTotal = journey.getInteger("totalSeats", 0)
+            val oldAvailable = journey.getInteger("availableSeats", 0)
+            val bookedSeats = oldTotal - oldAvailable
+            val newAvailable = (newTotal - bookedSeats).coerceAtLeast(0)
+            updateOps.add(Updates.set("totalSeats", newTotal))
+            updateOps.add(Updates.set("availableSeats", newAvailable))
         }
         updates.getInteger("pricePerSeat")?.let { updateOps.add(Updates.set("pricePerSeat", it)) }
         updates.getString("vehicleName")?.let { updateOps.add(Updates.set("vehicleName", it)) }
@@ -120,9 +132,16 @@ class JourneyService(
 
     /**
      * Get all journeys (public feed).
+     * Automatically filters out past trips (departureDate < today).
      */
     suspend fun getAllJourneys(): List<Document> {
-        return journeys.find(Filters.eq("status", "SCHEDULED")).toList()
+        val today = Clock.System.now().toString().take(10) // "YYYY-MM-DD"
+        return journeys.find(
+            Filters.and(
+                Filters.eq("status", "SCHEDULED"),
+                Filters.gte("departureDate", today)
+            )
+        ).toList()
     }
 
     /**
@@ -257,24 +276,3 @@ class JourneyService(
     }
 }
 
-// ── DTOs ──
-
-@kotlinx.serialization.Serializable
-data class DriverPayoutSummary(
-    val totalEarned: Int = 0,
-    val pendingEarnings: Int = 0,
-    val totalTrips: Int = 0,
-    val payouts: List<PayoutRow> = emptyList(),
-)
-
-@kotlinx.serialization.Serializable
-data class PayoutRow(
-    val paymentId: String,
-    val journeyId: String,
-    val passengerName: String,
-    val totalAmount: Int,
-    val driverPayout: Int,
-    val platformFee: Int,
-    val paymentMethod: String,
-    val releasedAt: String,
-)

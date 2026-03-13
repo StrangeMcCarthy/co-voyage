@@ -16,7 +16,7 @@ import kotlinx.serialization.json.Json
  * HTTP client for Flutterwave v3 API.
  * Handles mobile money (MTN/Orange) and card charges.
  */
-class FlutterwaveService(private val config: FlutterwaveConfig) {
+class FlutterwaveService(private val config: FlutterwaveConfig) : java.io.Closeable {
 
     private val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) {
@@ -107,5 +107,9 @@ class FlutterwaveService(private val config: FlutterwaveConfig) {
     fun verifyWebhookSignature(headerHash: String?): Boolean {
         if (config.webhookHash.isBlank()) return true // Skip if not configured
         return headerHash == config.webhookHash
+    }
+
+    override fun close() {
+        httpClient.close()
     }
 }

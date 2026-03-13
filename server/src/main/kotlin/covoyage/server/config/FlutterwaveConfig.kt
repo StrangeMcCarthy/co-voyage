@@ -13,8 +13,7 @@ data class FlutterwaveConfig(
     companion object {
         fun fromEnvironment(): FlutterwaveConfig {
             return FlutterwaveConfig(
-                secretKey = System.getenv("FLW_SECRET_KEY")
-                    ?: error("FLW_SECRET_KEY environment variable is required"),
+                secretKey = System.getenv("FLW_SECRET_KEY") ?: "FLWPUBK-DUMMY-KEY",
                 webhookHash = System.getenv("FLW_WEBHOOK_HASH") ?: "",
                 isTestMode = System.getenv("FLW_TEST_MODE")?.toBooleanStrictOrNull() ?: true,
             )

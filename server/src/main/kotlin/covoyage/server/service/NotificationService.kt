@@ -12,6 +12,7 @@ import covoyage.server.database.MongoConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 import org.bson.Document
 import org.slf4j.LoggerFactory
 
@@ -60,7 +61,7 @@ class NotificationService(
                 Filters.eq("userId", userId),
                 Updates.combine(
                     Updates.set("token", token),
-                    Updates.set("updatedAt", System.currentTimeMillis()),
+                    Updates.set("updatedAt", Clock.System.now().toString()),
                 ),
             )
         } else {
@@ -68,17 +69,35 @@ class NotificationService(
                 Document().apply {
                     put("userId", userId)
                     put("token", token)
-                    put("createdAt", System.currentTimeMillis())
-                    put("updatedAt", System.currentTimeMillis())
+                    put("createdAt", Clock.System.now().toString())
+                    put("updatedAt", Clock.System.now().toString())
                 },
             )
         }
     }
 
     /**
-     * Send a push notification to a specific user.
+     * Send an SMS via a mock provider (logs to console).
+     * In production, this would call Twilio/Infobip/etc.
      */
-    suspend fun sendToUser(userId: String, title: String, body: String, data: Map<String, String> = emptyMap()) {
+    suspend fun sendSms(phoneNumber: String, message: String) {
+        // Log the SMS clearly so the developer can see the OTP
+        logger.info("\n" + "=".repeat(40) + "\n" +
+                    "📱 MOCK SMS TO: $phoneNumber\n" +
+                    "💬 MESSAGE: $message\n" +
+                    "=".repeat(40))
+    }
+
+    /**
+     * Send a notification to a specific user. 
+     * If FCM is unavailable, it gracefully fails (or could fallback to SMS for critical info).
+     */
+    suspend fun sendToUser(userId: String, title: String, body: String, data: Map<String, String> = emptyMap(), critical: Boolean = false) {
+        if (critical) {
+            // For critical notifications, we might want to also send an SMS if we have the phone number
+            // This is a placeholder for that logic
+        }
+
         if (!firebaseInitialized) {
             logger.debug("FCM not initialized, skipping notification to $userId: $title")
             return

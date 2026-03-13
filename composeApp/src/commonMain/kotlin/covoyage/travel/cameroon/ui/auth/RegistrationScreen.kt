@@ -9,12 +9,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -24,6 +23,7 @@ import covoyage.travel.cameroon.i18n.Language
 import covoyage.travel.cameroon.i18n.LocalLanguage
 import covoyage.travel.cameroon.i18n.LocalStrings
 import covoyage.travel.cameroon.ui.components.CoVoyageButton
+import covoyage.travel.cameroon.ui.components.CoVoyagePasswordField
 import covoyage.travel.cameroon.ui.components.CoVoyageTextField
 
 class RegistrationScreen(
@@ -36,7 +36,6 @@ class RegistrationScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val uiState by authScreenModel.uiState.collectAsState()
-        var passwordVisible by remember { mutableStateOf(false) }
         val strings = LocalStrings.current
         val currentLanguage = LocalLanguage.current
 
@@ -142,37 +141,19 @@ class RegistrationScreen(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                OutlinedTextField(
+                CoVoyagePasswordField(
                     value = uiState.regPassword,
                     onValueChange = authScreenModel::updateRegPassword,
-                    label = { Text(strings.password) },
-                    leadingIcon = { Icon(Icons.Default.Lock, null) },
-                    trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                if (passwordVisible) Icons.Default.VisibilityOff
-                                else Icons.Default.Visibility,
-                                contentDescription = null,
-                            )
-                        }
-                    },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None
-                    else PasswordVisualTransformation(),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    label = strings.password,
+                    leadingIcon = Icons.Default.Lock,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                OutlinedTextField(
+                CoVoyagePasswordField(
                     value = uiState.regConfirmPassword,
                     onValueChange = authScreenModel::updateRegConfirmPassword,
-                    label = { Text(strings.confirmPassword) },
-                    leadingIcon = { Icon(Icons.Default.Lock, null) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    label = strings.confirmPassword,
+                    leadingIcon = Icons.Default.Lock,
                 )
 
                 // Driver fields
